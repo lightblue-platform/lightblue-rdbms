@@ -28,7 +28,7 @@
     <groupId>com.redhat.lightblue.rdbms</groupId>
     <artifactId>rdbms-pom</artifactId>
     <packaging>pom</packaging>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
     <name>lightblue-rdbms: ${project.groupId}|${project.artifactId}</name>
     <licenses>
         <license>
