@@ -22,6 +22,7 @@ public class RDBMSConfiguration extends JDBCMetaDataConfiguration {
         this.tc = tc;
     }
 
+    @Override
     public void readFromJDBC() {
         JDBCBinder binder = new RDBMSJDBCBinder(this, buildSettings(), createMappings(), new DefaultReverseEngineeringStrategy());
         binder.readFromDatabase(null, null, buildMapping(this));
@@ -61,7 +62,15 @@ public class RDBMSConfiguration extends JDBCMetaDataConfiguration {
         };
     }
 
-    public void tramslate() {
+    public void translate() {
+        tc.getTranslator().translate(tc);
+    }
 
+    public void generateOutput() {
+        tc.getTranslator().generateOutput(tc);
+    }
+
+    public TranslatorContext getTranslatorContext() {
+        return tc;
     }
 }

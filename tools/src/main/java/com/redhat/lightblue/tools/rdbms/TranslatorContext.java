@@ -1,5 +1,6 @@
 package com.redhat.lightblue.tools.rdbms;
 
+import com.redhat.lightblue.metadata.rdbms.model.RDBMS;
 import com.redhat.lightblue.metadata.rdbms.model.SQLMapping;
 import org.hibernate.cfg.reveng.DatabaseCollector;
 
@@ -13,8 +14,8 @@ import java.util.Map;
 public class TranslatorContext {
     protected Translator translator;
     protected java.io.PrintStream output;
-    protected SQLMapping result;
-    protected SQLMapping expectedResult;
+    protected RDBMS result;
+    protected RDBMS expectedResult;
     protected File file;
     // Reference to a map in case an  new extension wants to use other variable during the translation
     protected Map map;
@@ -38,11 +39,11 @@ public class TranslatorContext {
         return output;
     }
 
-    public SQLMapping getResult() {
+    public RDBMS getResult() {
         return result;
     }
 
-    public SQLMapping getExpectedResult() {
+    public RDBMS getExpectedResult() {
         return expectedResult;
     }
 
@@ -65,8 +66,8 @@ public class TranslatorContext {
     public static class Builder {
         protected Translator translator;
         protected java.io.PrintStream output;
-        protected SQLMapping result;
-        protected SQLMapping expectedResult;
+        protected RDBMS result;
+        protected RDBMS expectedResult;
         protected File file;
         protected Map map;
 
@@ -75,12 +76,12 @@ public class TranslatorContext {
             this.output = output;
         }
 
-        public Builder preConfiguredResult(SQLMapping result) {
+        public Builder preConfiguredResult(RDBMS result) {
             this.result = result;
             return this;
         }
 
-        public Builder expectedResult(SQLMapping expectedResult) {
+        public Builder expectedResult(RDBMS expectedResult) {
             this.expectedResult = expectedResult;
             return this;
         }
@@ -97,7 +98,7 @@ public class TranslatorContext {
 
         public TranslatorContext build() {
             if(result == null){
-                result = new SQLMapping();
+                result = new RDBMS();
             }
             return new TranslatorContext(this);
         }

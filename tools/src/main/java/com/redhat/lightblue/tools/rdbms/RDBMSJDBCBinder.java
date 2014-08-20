@@ -30,13 +30,11 @@ public class RDBMSJDBCBinder extends JDBCBinder {
         this.revEngStrategy = revEngStrategy;
     }
 
+    @Override
     public void readFromDatabase(String catalog, String schema, Mapping mapping) {
-
         try {
-
             DatabaseCollector collector = readDatabaseSchema(catalog, schema);
-            System.out.println(collector);
-
+            cfg.getTranslatorContext().setDatabaseCollector(collector);
         }
         catch (SQLException e) {
             JdbcServices jdbcServices = cfg.getServiceRegistry().getService(JdbcServices.class);
