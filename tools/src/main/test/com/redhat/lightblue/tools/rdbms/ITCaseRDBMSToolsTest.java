@@ -81,8 +81,13 @@ public class ITCaseRDBMSToolsTest {
                 System.out.println("Version: " + rs.getString(1));
             }
             stmt.close();
+            File json = new File("/tmp/rdbms.json");
+            if (!json.delete()) {
+                System.out.println("Failed to remove " + json.getAbsolutePath());
+            }
 
-            new RDBMSTools().configure();
+
+            RDBMSTools.main(new String[]{});
 
         } catch (NamingException ex) {
             throw new IllegalStateException(ex);

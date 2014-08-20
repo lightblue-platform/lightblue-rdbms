@@ -17,7 +17,8 @@ public class RDBMSTools {
 
     public void configure(){
         String fileName = "/tmp/rdbms.json";
-        String dialect = "org.hibernate.dialect.H2Dialect";
+        String hibernateDialect = "org.hibernate.dialect.H2Dialect";
+        String rdbmsDialect = "oracle"; // it is the only implementation we have so far
         String jndi = "java:/mydatasource";
         /*
         TODO below list:
@@ -37,9 +38,10 @@ public class RDBMSTools {
         } catch (FileNotFoundException e) {
             new IllegalStateException("Problem opening the file '"+fileName+"'",e);
         }
+        translatorContext.getMap().put("rdbmsDialect",rdbmsDialect);
         jmdc = new RDBMSConfiguration(translatorContext);
 
-        jmdc.setProperty("hibernate.dialect", dialect);
+        jmdc.setProperty("hibernate.dialect", hibernateDialect);
         jmdc.setProperty("hibernate.connection.datasource", jndi);
 
         jmdc.setPreferBasicCompositeIds(preferBasicCompositeIds);

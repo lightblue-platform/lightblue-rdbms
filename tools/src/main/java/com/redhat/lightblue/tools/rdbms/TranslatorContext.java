@@ -6,6 +6,7 @@ import org.hibernate.cfg.reveng.DatabaseCollector;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -99,6 +100,9 @@ public class TranslatorContext {
         public TranslatorContext build() {
             if(result == null){
                 result = new RDBMS();
+            }
+            if(map == null){
+                map = new HashMap();
             }
             return new TranslatorContext(this);
         }
