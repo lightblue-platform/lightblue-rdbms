@@ -51,9 +51,10 @@ public class RDBMSTools {
         /*
         TODO below list:
             Also get try to get the driver and the connection URL + driver.jar
-            Merge
+            Merge - read the file
             Generate the rest of lightblue json schema
             tests
+
          */
 
         boolean preferBasicCompositeIds = true;

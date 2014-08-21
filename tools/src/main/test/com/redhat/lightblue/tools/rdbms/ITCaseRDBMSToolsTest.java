@@ -36,6 +36,7 @@ public class ITCaseRDBMSToolsTest {
         rootLogger.addAppender(new ConsoleAppender(
                 new PatternLayout("%-6r [%p] %c - %m%n")));
     }
+    public static boolean singletonInit = true;
 
     @Before
     public void setup() throws Exception {
@@ -51,45 +52,53 @@ public class ITCaseRDBMSToolsTest {
                 System.out.println("Failed to remove " + file.getAbsolutePath());
             }
         }
+        if(singletonInit) {
+            singletonInit = false;
+            try {
+                // Create initial context
+                System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "org.apache.naming.java.javaURLContextFactory");
+                System.setProperty(Context.URL_PKG_PREFIXES, "org.apache.naming");
+                // already tried System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.as.naming.InitialContextFactory");
+                InitialContext ic = new InitialContext();
 
-        try {
-            // Create initial context
-            System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "org.apache.naming.java.javaURLContextFactory");
-            System.setProperty(Context.URL_PKG_PREFIXES, "org.apache.naming");
-            // already tried System.setProperty(Context.INITIAL_CONTEXT_FACTORY, "org.jboss.as.naming.InitialContextFactory");
-            InitialContext ic = new InitialContext();
+                try {
+                    ic.destroySubcontext("java:");
+                } catch (NamingException ex) {
+                    //ignore
+                }
+                ic.createSubcontext("java:");
 
-            ic.createSubcontext("java:");
-            ic.createSubcontext("java:/comp");
-            ic.createSubcontext("java:/comp/env");
-            ic.createSubcontext("java:/comp/env/jdbc");
 
-            JdbcConnectionPool ds = JdbcConnectionPool.create("jdbc:h2:file:/tmp/test.db;FILE_LOCK=NO;MVCC=TRUE;DB_CLOSE_ON_EXIT=TRUE", "sa", "sasasa");
+                JdbcConnectionPool jdbcs = JdbcConnectionPool.create("jdbc:h2:file:/tmp/test.db;FILE_LOCK=NO;MVCC=TRUE;DB_CLOSE_ON_EXIT=TRUE", "sa", "sasasa");
 
-            ic.bind("java:/mydatasource", ds);
-        } catch (NamingException ex) {
-            throw new IllegalStateException(ex);
+                ic.bind("java:/mydatasource", jdbcs);
+
+                Context initCtx = new InitialContext();
+                DataSource ds = (DataSource) initCtx.lookup("java:/mydatasource");
+                Connection conn = ds.getConnection();
+                Statement stmt = conn.createStatement();
+                stmt.execute("CREATE TABLE People ( PersonID INT PRIMARY KEY, Name VARCHAR(255) );");
+                stmt.execute("CREATE TABLE Document ( DocID INT PRIMARY KEY, PersonID INT, FOREIGN KEY(PersonID) REFERENCES People(PersonID) );");
+
+
+                // Good resource for examples of procedure with h2 https://code.google.com/p/h2database/source/browse/trunk/h2/src/test/org/h2/samples/Function.java
+                stmt.execute("CREATE ALIAS getVersion FOR \"org.h2.engine.Constants.getVersion\"");
+                ResultSet rs = stmt.executeQuery("CALL getVersion()");
+                if (rs.next()) {
+                    System.out.println("Version: " + rs.getString(1));
+                }
+                stmt.close();
+                initCtx.close();
+            } catch (NamingException ex) {
+                throw new IllegalStateException(ex);
+            }
         }
     }
 
     @Test
     public void testJoinsIntegrationTest() throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, URISyntaxException {
         try {
-            Context initCtx = new InitialContext();
-            DataSource ds = (DataSource) initCtx.lookup("java:/mydatasource");
-            Connection conn = ds.getConnection();
-            Statement stmt = conn.createStatement();
-            stmt.execute("CREATE TABLE People ( PersonID INT PRIMARY KEY, Name VARCHAR(255) );");
-            stmt.execute("CREATE TABLE Document ( DocID INT PRIMARY KEY, PersonID INT, FOREIGN KEY(PersonID) REFERENCES People(PersonID) );");
 
-
-            // Good resource for examples of procedure with h2 https://code.google.com/p/h2database/source/browse/trunk/h2/src/test/org/h2/samples/Function.java
-            stmt.execute("CREATE ALIAS getVersion FOR \"org.h2.engine.Constants.getVersion\"");
-            ResultSet rs = stmt.executeQuery("CALL getVersion()");
-            if (rs.next()) {
-                System.out.println("Version: " + rs.getString(1));
-            }
-            stmt.close();
             String pathname = "/tmp/rdbms.json";
             File json = new File(pathname);
             if (!json.delete()) {
@@ -100,33 +109,18 @@ public class ITCaseRDBMSToolsTest {
             RDBMSTools.main(new String[]{"canonicalName=com.redhat.lightblue.tools.rdbms.JoinedTablesSQLMappingTranslator"});
 
             String result = Files.readAllLines(Paths.get(pathname), Charset.defaultCharset()).get(0);
-            String expected = "{\"rdbms\":{\"fetch\":{\"expressions\":[{\"$statement\":{\"sql\":\"select * from NEED_TO_CHANGE\",\"type\":\"select\"}}]},\"dialect\":\"oracle\",\"SQLMapping\":{\"joins\":[{\"tables\":[{\"name\":\"DOCUMENT\"}],\"joinTablesStatement\":null,\"projectionMappings\":[{\"column\":\"DOCID\",\"field\":\"DOCID\",\"sort\":\"DOCID\"}]},{\"tables\":[{\"name\":\"PEOPLE\"}],\"joinTablesStatement\":null,\"projectionMappings\":[{\"column\":\"PERSONID\",\"field\":\"PERSONID\",\"sort\":\"PERSONID\"},{\"column\":\"NAME\",\"field\":\"NAME\",\"sort\":\"NAME\"}]}],\"columnToFieldMap\":[{\"table\":\"DOCUMENT\",\"column\":\"DOCID\",\"field\":\"DOCID\"},{\"table\":\"PEOPLE\",\"column\":\"PERSONID\",\"field\":\"PERSONID\"},{\"table\":\"PEOPLE\",\"column\":\"NAME\",\"field\":\"NAME\"}]}}}";
+            String expected = "{\"rdbms\":{\"fetch\":{\"expressions\":[{\"$statement\":{\"sql\":\"select * from NEED_TO_CHANGE\",\"type\":\"select\"}}]},\"dialect\":\"oracle\",\"SQLMapping\":{\"joins\":[{\"tables\":[{\"name\":\"DOCUMENT\"},{\"name\":\"PEOPLE\"}],\"joinTablesStatement\":\"DOCUMENT.PERSONID=PEOPLE.PERSONID\",\"projectionMappings\":[{\"column\":\"DOCID\",\"field\":\"DOCID\",\"sort\":\"DOCID\"},{\"column\":\"PERSONID\",\"field\":\"PERSONID\",\"sort\":\"PERSONID\"},{\"column\":\"NAME\",\"field\":\"NAME\",\"sort\":\"NAME\"}]}],\"columnToFieldMap\":[{\"table\":\"DOCUMENT\",\"column\":\"DOCID\",\"field\":\"DOCID\"},{\"table\":\"PEOPLE\",\"column\":\"PERSONID\",\"field\":\"PERSONID\"},{\"table\":\"PEOPLE\",\"column\":\"NAME\",\"field\":\"NAME\"}]}}}";
             System.out.println(result);
             JSONAssert.assertEquals(expected, result, false);
 
-        } catch (NamingException | SQLException | JSONException ex ) {
+        } catch ( JSONException | IOException ex ) {
             throw new IllegalStateException(ex);
         }
     }
 
     @Test
-    public void testSimpleIntegrationTest() throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, URISyntaxException {
+    public void testSimpleIntegrationTest() {
         try {
-            Context initCtx = new InitialContext();
-            DataSource ds = (DataSource) initCtx.lookup("java:/mydatasource");
-            Connection conn = ds.getConnection();
-            Statement stmt = conn.createStatement();
-            stmt.execute("CREATE TABLE People ( PersonID INT PRIMARY KEY, Name VARCHAR(255) );");
-            stmt.execute("CREATE TABLE Document ( DocID INT PRIMARY KEY, PersonID INT, FOREIGN KEY(PersonID) REFERENCES People(PersonID) );");
-
-
-            // Good resource for examples of procedure with h2 https://code.google.com/p/h2database/source/browse/trunk/h2/src/test/org/h2/samples/Function.java
-            stmt.execute("CREATE ALIAS getVersion FOR \"org.h2.engine.Constants.getVersion\"");
-            ResultSet rs = stmt.executeQuery("CALL getVersion()");
-            if (rs.next()) {
-                System.out.println("Version: " + rs.getString(1));
-            }
-            stmt.close();
             String pathname = "/tmp/rdbms.json";
             File json = new File(pathname);
             if (!json.delete()) {
@@ -141,7 +135,7 @@ public class ITCaseRDBMSToolsTest {
             //System.out.println(result);
             JSONAssert.assertEquals(expected, result, false);
 
-        } catch (NamingException | SQLException | JSONException ex ) {
+        } catch ( JSONException | IOException ex ) {
             throw new IllegalStateException(ex);
         }
     }

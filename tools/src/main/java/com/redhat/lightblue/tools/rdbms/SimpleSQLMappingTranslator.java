@@ -35,6 +35,8 @@ public class SimpleSQLMappingTranslator implements Translator {
         Map<String, TableIdentifier> mapped = new HashMap<>();
         RDBMS rdbms = setupRDBMS(tc);
 
+        rdbms.setDialect((String) tc.getMap().get("rdbmsDialect"));
+
         for (Iterator<Table> i = collector.iterateTables(); i.hasNext();) {
             Table table = i.next();
             if(table.getColumnSpan()==0) {
@@ -53,7 +55,6 @@ public class SimpleSQLMappingTranslator implements Translator {
                 throw new IllegalStateException("Table mapped twice");
             }
 
-            rdbms.setDialect((String) tc.getMap().get("rdbmsDialect"));
 
             Join join = new Join();
             join.setProjectionMappings(new ArrayList<ProjectionMapping>());
@@ -69,6 +70,7 @@ public class SimpleSQLMappingTranslator implements Translator {
                 }
             }
 
+
             Boolean mapfk = (Boolean) tc.getMap().get("mapfk");
             for (Iterator<Column> j = table.getColumnIterator(); j.hasNext();) {
                 Column column = j.next();
@@ -80,6 +82,7 @@ public class SimpleSQLMappingTranslator implements Translator {
                     join.getProjectionMappings().add(projectionMapping);
                 }
             }
+
             com.redhat.lightblue.metadata.rdbms.model.Table rdbmTable = new com.redhat.lightblue.metadata.rdbms.model.Table();
             rdbmTable.setName(table.getName());
             join.getTables().add(rdbmTable);

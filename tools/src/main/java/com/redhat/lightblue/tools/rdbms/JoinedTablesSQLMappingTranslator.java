@@ -13,6 +13,8 @@ import com.redhat.lightblue.metadata.types.DefaultTypes;
 import org.hibernate.cfg.reveng.DatabaseCollector;
 import org.hibernate.cfg.reveng.TableIdentifier;
 import org.hibernate.mapping.Column;
+import org.hibernate.mapping.ForeignKey;
+import org.hibernate.mapping.PrimaryKey;
 import org.hibernate.mapping.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,9 @@ public class JoinedTablesSQLMappingTranslator extends SimpleSQLMappingTranslator
         Map<String, TableIdentifier> mapped = new HashMap<>();
         RDBMS rdbms = setupRDBMS(tc);
         Map<String, Join> tableToJoin = new HashMap<>();
+        Map<TableIdentifier,PrimaryKey> pks = new HashMap<>();
+
+        rdbms.setDialect((String) tc.getMap().get("rdbmsDialect"));
 
         for (Iterator<Table> i = collector.iterateTables(); i.hasNext();) {
             Table table = i.next();
@@ -43,13 +48,16 @@ public class JoinedTablesSQLMappingTranslator extends SimpleSQLMappingTranslator
             }
             /*
             // TODO analyze this case
-            if(revengStrategy.isManyToManyTable(table)) {
-
-            }
+            if(revengStrategy.isManyToManyTable(table)) {}
             */
-            TableIdentifier tableIdentifier = TableIdentifier.create(table);
 
+            Map<String, ForeignKey> fks = new HashMap<>();
+
+            TableIdentifier tableIdentifier = TableIdentifier.create(table);
             String id = tableIdentifier.toString();
+
+            pks.put(tableIdentifier,table.getPrimaryKey());
+
             if(!mapped.containsKey(id)) {
                 mapped.put(id, tableIdentifier);
             } else {
@@ -62,32 +70,42 @@ public class JoinedTablesSQLMappingTranslator extends SimpleSQLMappingTranslator
                 join.setProjectionMappings(new ArrayList<ProjectionMapping>());
                 join.setTables(new ArrayList<com.redhat.lightblue.metadata.rdbms.model.Table>());
                 join.setJoinTablesStatement("");
+                rdbms.getSQLMapping().getJoins().add(join);
                 tableToJoin.put(id,join);
             }else{
                 join = tableToJoin.get(id);
             }
 
-            rdbms.setDialect((String) tc.getMap().get("rdbmsDialect"));
+            for (Iterator<ForeignKey> j =  table.getForeignKeyIterator(); j.hasNext();) {
+                ForeignKey fk = j.next();
+                Table referencedTable = fk.getReferencedTable();
+                TableIdentifier ti = TableIdentifier.create(referencedTable);
+                tableToJoin.put(ti.toString(),join);
+                for (Iterator<Column> z =  fk.getColumns().iterator(); z.hasNext();) {
+                    Column c =  z.next();
+                    fks.put(c.getName(),fk);
+                    String joinTable = join.getJoinTablesStatement();
+                    if(joinTable.length() !=  0){
+                        joinTable = joinTable + " AND ";
+                    }
+                    join.setJoinTablesStatement(joinTable + table.getName() + "."+c.getName() +"="+referencedTable.getName() + "."+c.getName());
+                }
+            }
+
             for (Iterator<Column> j = table.getColumnIterator(); j.hasNext();) {
                 Column column = j.next();
-                ColumnToField field = setupColumnToField(table, column);
-                rdbms.getSQLMapping().getColumnToFieldMap().add(field);
+                if(fks.get(column.getName())== null ){
+                    ColumnToField field = setupColumnToField(table, column);
+                    rdbms.getSQLMapping().getColumnToFieldMap().add(field);
 
-
-
-                ProjectionMapping projectionMapping = setupProjectionMapping(column);
-                join.getProjectionMappings().add(projectionMapping);
-
-                com.redhat.lightblue.metadata.rdbms.model.Table rdbmTable = new com.redhat.lightblue.metadata.rdbms.model.Table();
-                rdbmTable.setName(table.getName());
-                join.getTables().add(rdbmTable);
-
-                String joinTablesStatement = join.getJoinTablesStatement();
-                join.setJoinTablesStatement(joinTablesStatement + " AND " + genereteConditional());
-                table.getForeignKeyIterator();
-
-                rdbms.getSQLMapping().getJoins().add(join);
+                    ProjectionMapping projectionMapping = setupProjectionMapping(column);
+                    join.getProjectionMappings().add(projectionMapping);
+                }
             }
+
+            com.redhat.lightblue.metadata.rdbms.model.Table rdbmTable = new com.redhat.lightblue.metadata.rdbms.model.Table();
+            rdbmTable.setName(table.getName());
+            join.getTables().add(rdbmTable);
         }
     }
 
