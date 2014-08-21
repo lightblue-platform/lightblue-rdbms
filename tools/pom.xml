@@ -71,6 +71,13 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
         </dependency>
+        <dependency>
+            <groupId>database</groupId>
+            <artifactId>driver</artifactId>
+            <version>3.0</version>
+            <scope>system</scope>
+            <systemPath>/home/lcestari/.m2/repository/com/h2database/h2/1.4.178/h2-1.4.178.jar</systemPath>
+        </dependency>
     </dependencies>
 
     <repositories>

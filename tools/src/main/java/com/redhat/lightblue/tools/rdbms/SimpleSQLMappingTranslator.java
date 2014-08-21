@@ -8,20 +8,20 @@ import com.redhat.lightblue.metadata.rdbms.enums.LightblueOperators;
 import com.redhat.lightblue.metadata.rdbms.enums.TypeOperators;
 import com.redhat.lightblue.metadata.rdbms.impl.RDBMSPropertyParserImpl;
 import com.redhat.lightblue.metadata.rdbms.model.*;
+import com.redhat.lightblue.metadata.rdbms.model.Join;
 import com.redhat.lightblue.metadata.types.DefaultTypes;
 import org.hibernate.DuplicateMappingException;
 import org.hibernate.cfg.JDBCBinderException;
 import org.hibernate.cfg.reveng.DatabaseCollector;
 import org.hibernate.cfg.reveng.TableIdentifier;
 import org.hibernate.internal.util.StringHelper;
-import org.hibernate.mapping.Column;
-import org.hibernate.mapping.PersistentClass;
-import org.hibernate.mapping.RootClass;
+import org.hibernate.mapping.*;
 import org.hibernate.mapping.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.Map;
 
 /**
  * Created by lcestari on 8/19/14.
@@ -32,20 +32,8 @@ public class SimpleSQLMappingTranslator implements Translator {
     @Override
     public void translate(TranslatorContext tc) {
         DatabaseCollector collector = tc.getDatabaseCollector();
-        RDBMS rdbms = tc.getResult();
         Map<String, TableIdentifier> mapped = new HashMap<>();
-        rdbms.setSQLMapping(new SQLMapping());
-        rdbms.getSQLMapping().setColumnToFieldMap(new ArrayList<ColumnToField>());
-        rdbms.getSQLMapping().setJoins(new ArrayList<Join>());
-        //at least one operation need to be informed
-        Operation fetch = new Operation();
-        fetch.setName(LightblueOperators.FETCH);
-        fetch.setExpressionList(new ArrayList<Expression>());
-        Statement statement = new Statement();
-        statement.setSQL("select * from NEED_TO_CHANGE");
-        statement.setType("select");
-        fetch.getExpressionList().add(statement);
-        rdbms.setFetch(fetch);
+        RDBMS rdbms = setupRDBMS(tc);
 
         for (Iterator<Table> i = collector.iterateTables(); i.hasNext();) {
             Table table = i.next();
@@ -54,36 +42,92 @@ public class SimpleSQLMappingTranslator implements Translator {
                 continue;
             }
 
+            Map<String, TableIdentifier> fks = new HashMap<>();
+
             TableIdentifier tableIdentifier = TableIdentifier.create(table);
             String id = tableIdentifier.toString();
+
             if(!mapped.containsKey(id)) {
                 mapped.put(id, tableIdentifier);
             } else {
                 throw new IllegalStateException("Table mapped twice");
             }
+
             rdbms.setDialect((String) tc.getMap().get("rdbmsDialect"));
+
+            Join join = new Join();
+            join.setProjectionMappings(new ArrayList<ProjectionMapping>());
+            join.setTables(new ArrayList<com.redhat.lightblue.metadata.rdbms.model.Table>());
+
+            for (Iterator<ForeignKey> j =  table.getForeignKeyIterator(); j.hasNext();) {
+                ForeignKey fk = j.next();
+                Table referencedTable = fk.getReferencedTable();
+                TableIdentifier ti = TableIdentifier.create(referencedTable);
+                for (Iterator<Column> z =  fk.getColumns().iterator(); z.hasNext();) {
+                    Column c =  z.next();
+                    fks.put(c.getName(),ti);
+                }
+            }
+
+            Boolean mapfk = (Boolean) tc.getMap().get("mapfk");
             for (Iterator<Column> j = table.getColumnIterator(); j.hasNext();) {
                 Column column = j.next();
-                ColumnToField field = new ColumnToField();
-                field.setField(column.getName());
-                field.setColumn(column.getName());
-                field.setTable(table.getName());
-                rdbms.getSQLMapping().getColumnToFieldMap().add(field);
+                if(fks.get(column.getName())== null || mapfk ){
+                    ColumnToField field = setupColumnToField(table, column);
+                    rdbms.getSQLMapping().getColumnToFieldMap().add(field);
 
-                Join join = new Join();
-                join.setProjectionMappings(new ArrayList<ProjectionMapping>());
-                ProjectionMapping projectionMapping = new ProjectionMapping();
-                projectionMapping.setColumn(column.getName());
-                projectionMapping.setField(column.getName());
-                projectionMapping.setSort(column.getName());
-                join.getProjectionMappings().add(projectionMapping);
-                join.setTables(new ArrayList<com.redhat.lightblue.metadata.rdbms.model.Table>());
-                com.redhat.lightblue.metadata.rdbms.model.Table rdbmTable = new com.redhat.lightblue.metadata.rdbms.model.Table();
-                rdbmTable.setName(table.getName());
-                join.getTables().add(rdbmTable);
-                rdbms.getSQLMapping().getJoins().add(join);
+                    ProjectionMapping projectionMapping = setupProjectionMapping(column);
+                    join.getProjectionMappings().add(projectionMapping);
+                }
             }
+            com.redhat.lightblue.metadata.rdbms.model.Table rdbmTable = new com.redhat.lightblue.metadata.rdbms.model.Table();
+            rdbmTable.setName(table.getName());
+            join.getTables().add(rdbmTable);
+
+            rdbms.getSQLMapping().getJoins().add(join);
         }
+    }
+
+    protected ProjectionMapping setupProjectionMapping(Column column) {
+        ProjectionMapping projectionMapping = new ProjectionMapping();
+        projectionMapping.setColumn(column.getName());
+        projectionMapping.setField(column.getName());
+        projectionMapping.setSort(column.getName());
+        return projectionMapping;
+    }
+
+    protected ColumnToField setupColumnToField(Table table, Column column) {
+        ColumnToField field = new ColumnToField();
+        field.setField(column.getName());
+        field.setColumn(column.getName());
+        field.setTable(table.getName());
+        return field;
+    }
+
+    protected RDBMS setupRDBMS(TranslatorContext tc) {
+        RDBMS rdbms = tc.getResult();
+
+        if(rdbms.getSQLMapping() == null) {
+            rdbms.setSQLMapping(new SQLMapping());
+        }
+        if(rdbms.getSQLMapping().getColumnToFieldMap() == null) {
+            rdbms.getSQLMapping().setColumnToFieldMap(new ArrayList<ColumnToField>());
+        }
+        if(rdbms.getSQLMapping().getJoins() == null) {
+            rdbms.getSQLMapping().setJoins(new ArrayList<Join>());
+        }
+        if(rdbms.getDelete() == null && rdbms.getFetch() == null && rdbms.getInsert() == null && rdbms.getSave() == null && rdbms.getUpdate() == null) {
+            //at least one operation need to be informed
+            Operation fetch = new Operation();
+            fetch.setName(LightblueOperators.FETCH);
+            fetch.setExpressionList(new ArrayList<Expression>());
+            Statement statement = new Statement();
+            statement.setSQL("select * from NEED_TO_CHANGE");
+            statement.setType("select");
+            fetch.getExpressionList().add(statement);
+            rdbms.setFetch(fetch);
+        }
+        return rdbms;
     }
 
     @Override
