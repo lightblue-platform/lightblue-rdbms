@@ -145,6 +145,10 @@ public class RDBMSTools {
     }
 
     public static void main(String[] args) {
+        /*
+        Example
+            mvn  -Dexec.args="url=jdbc:h2:mem: driverClass=org.h2.Driver hibernateDialect=org.hibernate.dialect.H2Dialect pathToJar=/home/lcestari/.m2/repository/com/h2database/h2/1.4.178/h2-1.4.178.jar"
+         */
         if(args.length == 0 || (args.length == 1 && "help".equals(args[0].replaceAll("-",""))) ){
             System.out.println("Usage:\n" +
                     "\tkey=value\n" +
@@ -175,17 +179,10 @@ public class RDBMSTools {
 
     private static void generateLoad(RDBMSTools rdbmsTools) {
         try {
-            //Class<?> aClass = Thread.currentThread().getContextClassLoader().loadClass(rdbmsTools.driverClass);
-            //Class.forName(rdbmsTools.driverClass);
             Class<?> aClass = Thread.currentThread().getContextClassLoader().loadClass("org.h2.jdbcx.JdbcDataSource");
             DataSource ds = (DataSource) aClass.newInstance();
             Method msetURL = aClass.getMethod("setURL", String.class);
-            Method msetUser = aClass.getMethod("setUser", String.class);
-            Method msetPassword = aClass.getMethod("setPassword", String.class);
             msetURL.invoke(ds, rdbmsTools.url);
-            msetUser.invoke(ds, rdbmsTools.username);
-            msetPassword.invoke(ds, rdbmsTools.password);
-            //Connection conn = DriverManager.getConnection(rdbmsTools.url, rdbmsTools.username, rdbmsTools.password);
             Connection conn = ds.getConnection();
             createTables(conn);
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException | SQLException e) {
@@ -196,14 +193,19 @@ public class RDBMSTools {
     public static void createTables(Connection conn) {
         try {
             Statement stmt = conn.createStatement();
+            stmt.execute("DROP ALIAS getVersion;");
+            stmt.execute("DROP TABLE Document;");
+            stmt.execute("DROP TABLE People;");
+            stmt.close();
+            stmt = conn.createStatement();
             stmt.execute("CREATE TABLE People ( PersonID INT PRIMARY KEY, Name VARCHAR(255) );");
             stmt.execute("CREATE TABLE Document ( DocID INT PRIMARY KEY, PersonID INT, FOREIGN KEY(PersonID) REFERENCES People(PersonID) );");
-            // Good resource for examples of procedure with h2 https://code.google.com/p/h2database/source/browse/trunk/h2/src/test/org/h2/samples/Function.java
-            stmt.execute("CREATE ALIAS getVersion FOR \"org.h2.engine.Constants.getVersion\"");
+            stmt.execute("CREATE ALIAS getVersion FOR \"org.h2.engine.Constants.getVersion\"");// Good resource for examples of procedure with h2 https://code.google.com/p/h2database/source/browse/trunk/h2/src/test/org/h2/samples/Function.java
             ResultSet rs = stmt.executeQuery("CALL getVersion()");
             if (rs.next()) {
                 System.out.println("Version: " + rs.getString(1));
             }
+            rs.close();
             stmt.close();
             conn.close();
         } catch (SQLException e) {
