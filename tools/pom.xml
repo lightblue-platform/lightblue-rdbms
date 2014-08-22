@@ -78,6 +78,11 @@
             <scope>system</scope>
             <systemPath>/home/lcestari/.m2/repository/com/h2database/h2/1.4.178/h2-1.4.178.jar</systemPath>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>14.0.1</version>
+        </dependency>
     </dependencies>
 
     <repositories>
