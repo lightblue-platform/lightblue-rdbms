@@ -1,15 +1,9 @@
 package com.redhat.lightblue.tools.rdbms;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.redhat.lightblue.metadata.parser.Extensions;
-import com.redhat.lightblue.metadata.parser.JSONMetadataParser;
-import com.redhat.lightblue.metadata.rdbms.impl.RDBMSPropertyParserImpl;
 import com.redhat.lightblue.metadata.rdbms.model.ColumnToField;
 import com.redhat.lightblue.metadata.rdbms.model.Join;
 import com.redhat.lightblue.metadata.rdbms.model.ProjectionMapping;
 import com.redhat.lightblue.metadata.rdbms.model.RDBMS;
-import com.redhat.lightblue.metadata.types.DefaultTypes;
 import org.hibernate.cfg.reveng.DatabaseCollector;
 import org.hibernate.cfg.reveng.TableIdentifier;
 import org.hibernate.mapping.Column;
@@ -88,7 +82,7 @@ public class JoinedTablesSQLMappingTranslator extends SimpleSQLMappingTranslator
                     if(joinTable.length() !=  0){
                         joinTable = joinTable + " AND ";
                     }
-                    join.setJoinTablesStatement(joinTable + table.getName() + "."+c.getName() +"="+referencedTable.getName() + "."+c.getName());
+                    join.setJoinTablesStatement(joinTable + table.getName() + "." + c.getName() + "=" + referencedTable.getName() + "." + c.getName());
                 }
             }
 

@@ -1,7 +1,6 @@
 package com.redhat.lightblue.tools.rdbms;
 
 import com.redhat.lightblue.metadata.rdbms.model.RDBMS;
-import com.redhat.lightblue.metadata.rdbms.model.SQLMapping;
 import org.hibernate.cfg.reveng.DatabaseCollector;
 
 import java.io.File;

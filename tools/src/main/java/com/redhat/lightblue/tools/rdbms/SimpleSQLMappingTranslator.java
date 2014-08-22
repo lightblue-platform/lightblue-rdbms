@@ -5,22 +5,20 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.redhat.lightblue.metadata.parser.Extensions;
 import com.redhat.lightblue.metadata.parser.JSONMetadataParser;
 import com.redhat.lightblue.metadata.rdbms.enums.LightblueOperators;
-import com.redhat.lightblue.metadata.rdbms.enums.TypeOperators;
 import com.redhat.lightblue.metadata.rdbms.impl.RDBMSPropertyParserImpl;
 import com.redhat.lightblue.metadata.rdbms.model.*;
-import com.redhat.lightblue.metadata.rdbms.model.Join;
 import com.redhat.lightblue.metadata.types.DefaultTypes;
-import org.hibernate.DuplicateMappingException;
-import org.hibernate.cfg.JDBCBinderException;
 import org.hibernate.cfg.reveng.DatabaseCollector;
 import org.hibernate.cfg.reveng.TableIdentifier;
-import org.hibernate.internal.util.StringHelper;
-import org.hibernate.mapping.*;
+import org.hibernate.mapping.Column;
+import org.hibernate.mapping.ForeignKey;
 import org.hibernate.mapping.Table;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**

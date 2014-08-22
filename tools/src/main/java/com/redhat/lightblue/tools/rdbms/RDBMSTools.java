@@ -1,52 +1,56 @@
 package com.redhat.lightblue.tools.rdbms;
 
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.hibernate.cfg.reveng.DefaultReverseEngineeringStrategy;
 import org.hibernate.cfg.reveng.ReverseEngineeringSettings;
 import org.hibernate.cfg.reveng.ReverseEngineeringStrategy;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 /**
  * Created by lcestari on 8/19/14.
  */
 public class RDBMSTools {
+
+    static
+    {
+        Logger rootLogger = Logger.getRootLogger();
+        rootLogger.setLevel(Level.INFO);
+        rootLogger.addAppender(new ConsoleAppender(
+                new PatternLayout("%-6r [%p] %c - %m%n")));
+    }
+
     private RDBMSConfiguration jmdc; // RDBMSConfiguration extends JDBCMetaDataConfiguration
     private TranslatorContext translatorContext;
 
     // parameters and default values
-    String fileName = "/tmp/rdbms.json";
-    String hibernateDialect = "org.hibernate.dialect.H2Dialect";
-    String rdbmsDialect = "oracle"; // it is the only implementation we have so far
+    String outputFile;
+    String hibernateDialect;
+    String rdbmsDialect = "oracle";
     String url = null;
     String username = null;
     String password = null;
-    String jndi = "java:/mydatasource";
+    String jndi;
     Boolean mapfk = Boolean.parseBoolean("false");
     String canonicalName = SimpleSQLMappingTranslator.class.getCanonicalName();
-    String driverClass = null; // The driver must be in jar defined in pom.xml using system path, maybe change to the following approach:
-    /*
-        ClassLoader loader = URLClassLoader.newInstance(new URL[]{new File("pathToJar").toURL()}, getClass().getClassLoader());
-        Class<?> clazz = Class.forName(driverClass, true, loader);
-        Constructor<?> c = clazz.getConstructor();
-        c.newInstance(); // but hibernate would need just the driver class name, which wont see this classloader
-
-        maybe using:
-        ClassLoader currentThreadClassLoader = Thread.currentThread().getContextClassLoader();
-        URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{new File("pathToJar").toURL()}, currentThreadClassLoader);
-        Thread.currentThread().setContextClassLoader(myClassLoader);
-        as the hibernate seems to use ReflectHelper to get the class (which will use the thread class loader)
-     */
+    String driverClass = null;
+    String pathToJar;
 
 
-    public void configure(){
-
-
+    public void configure() {
         Class<? extends Translator> clazz = null; // or JoinedTablesSQLMappingTranslator
         try {
             clazz = (Class<? extends Translator>) Class.forName(canonicalName);
         } catch (ClassNotFoundException e) {
-            new IllegalStateException("Problem creating the informed Translator class '"+canonicalName+"'",e);
+            throw new IllegalStateException("Problem creating the informed Translator class '" + canonicalName + "'", e);
         }
         /*
         TODO below list:
@@ -54,7 +58,7 @@ public class RDBMSTools {
             Merge - read the file
             Generate the rest of lightblue json schema
             tests
-
+            tests h2 parameter
          */
 
         boolean preferBasicCompositeIds = true;
@@ -63,36 +67,52 @@ public class RDBMSTools {
         boolean detectOptimisticLock = true;
 
         try {
-            translatorContext = new TranslatorContext.Builder(clazz.newInstance(),new PrintStream(fileName)).build();
+            if (outputFile != null) {
+                translatorContext = new TranslatorContext.Builder(clazz.newInstance(), new PrintStream(outputFile)).build();
+            } else {
+                translatorContext = new TranslatorContext.Builder(clazz.newInstance(), System.out).build();
+            }
         } catch (FileNotFoundException e) {
-            new IllegalStateException("Problem opening the file '"+fileName+"'",e);
-        } catch (InstantiationException e) {
-            new IllegalStateException("Problem creating the informed Translator class '"+canonicalName+"'",e);
-        } catch (IllegalAccessException e) {
-            new IllegalStateException("Problem creating the informed Translator class '"+canonicalName+"'",e);
+            throw new IllegalStateException("Problem opening the file '" + outputFile + "'", e);
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalStateException("Problem creating the informed Translator class '" + canonicalName + "'", e);
         }
 
-        translatorContext.getMap().put("rdbmsDialect",rdbmsDialect);
-        translatorContext.getMap().put("mapfk",mapfk);
-        translatorContext.getMap().put("TranslatorClass",clazz);
+        translatorContext.getMap().put("rdbmsDialect", rdbmsDialect);
+        translatorContext.getMap().put("mapfk", mapfk);
+        translatorContext.getMap().put("TranslatorClass", clazz);
 
         jmdc = new RDBMSConfiguration(translatorContext);
 
-        jmdc.setProperty("hibernate.dialect", hibernateDialect);
+        if (hibernateDialect != null) {
+            jmdc.setProperty("hibernate.dialect", hibernateDialect);
+        } else {
+            throw new IllegalStateException("hibernateDialect not informed");
+        }
 
-        if(url != null && driverClass != null){
+        if (url != null && driverClass != null && pathToJar != null) {
             jmdc.setProperty("hibernate.connection.driver_class", driverClass);
             jmdc.setProperty("hibernate.connection.url", url);
-            if(username != null) {
+            if (username != null) {
                 jmdc.setProperty("hibernate.connection.username", username);
                 jmdc.setProperty("hibernate.connection.password", password);
             }
-        }
-        else if(jndi != null && !jndi.isEmpty()) {
+        } else if (jndi != null && !jndi.isEmpty()) {
             jmdc.setProperty("hibernate.connection.datasource", jndi);
         } else {
-            new IllegalStateException("No connection to the database was informed");
+            throw new IllegalStateException("No connection to the database was informed (pathToJar or url or driver_class or jndi)");
         }
+
+        if (pathToJar != null){
+            ClassLoader currentThreadClassLoader = Thread.currentThread().getContextClassLoader();
+            try {
+                URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{new File(pathToJar).toURL()}, currentThreadClassLoader);
+                Thread.currentThread().setContextClassLoader(urlClassLoader);
+            } catch (MalformedURLException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
 
         jmdc.setPreferBasicCompositeIds(preferBasicCompositeIds);
         DefaultReverseEngineeringStrategy defaultStrategy = new DefaultReverseEngineeringStrategy();
@@ -134,8 +154,8 @@ public class RDBMSTools {
         RDBMSTools rdbmsTools = new RDBMSTools();
         for (int i = 0; i < args.length; i++) {
             String[] s = args[i].split("=");
-            if(s[0].equals("fileName")){
-                rdbmsTools.fileName = s[1];
+            if(s[0].equals("outputFile")){
+                rdbmsTools.outputFile = s[1];
             } else if (s[0].equals("hibernateDialect")){
                 rdbmsTools.hibernateDialect = s[1];
             }else if (s[0].equals("rdbmsDialect")){
@@ -154,6 +174,8 @@ public class RDBMSTools {
                 rdbmsTools.mapfk = Boolean.parseBoolean(s[1]);
             }else if (s[0].equals("canonicalName")){
                 rdbmsTools.canonicalName = s[1];
+            }else if (s[0].equals("pathToJar")){
+                rdbmsTools.pathToJar = s[1];
             }else{
                 System.err.println("Invalid argument: "+args[i]);
             }

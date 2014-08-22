@@ -1,9 +1,5 @@
 package com.redhat.lightblue.tools.rdbms;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.json.JSONException;
 import org.junit.Before;
@@ -24,19 +20,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
 
 public class ITCaseRDBMSToolsTest {
-    static
-    {
-        Logger rootLogger = Logger.getRootLogger();
-        rootLogger.setLevel(Level.INFO);
-        rootLogger.addAppender(new ConsoleAppender(
-                new PatternLayout("%-6r [%p] %c - %m%n")));
-    }
     public static boolean singletonInit = true;
+    public static final String outputFile = "/tmp/rdbms.json";
 
     @Before
     public void setup() throws Exception {
@@ -98,17 +86,14 @@ public class ITCaseRDBMSToolsTest {
     @Test
     public void testJoinsIntegrationTest() throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, URISyntaxException {
         try {
-
-            String pathname = "/tmp/rdbms.json";
-            File json = new File(pathname);
+            File json = new File(outputFile);
             if (!json.delete()) {
                 System.out.println("Failed to remove " + json.getAbsolutePath());
             }
 
+            RDBMSTools.main(new String[]{"hibernateDialect=org.hibernate.dialect.H2Dialect","jndi=java:/mydatasource","outputFile="+outputFile,"canonicalName=com.redhat.lightblue.tools.rdbms.JoinedTablesSQLMappingTranslator"});
 
-            RDBMSTools.main(new String[]{"canonicalName=com.redhat.lightblue.tools.rdbms.JoinedTablesSQLMappingTranslator"});
-
-            String result = Files.readAllLines(Paths.get(pathname), Charset.defaultCharset()).get(0);
+            String result = Files.readAllLines(Paths.get(outputFile), Charset.defaultCharset()).get(0);
             String expected = "{\"rdbms\":{\"fetch\":{\"expressions\":[{\"$statement\":{\"sql\":\"select * from NEED_TO_CHANGE\",\"type\":\"select\"}}]},\"dialect\":\"oracle\",\"SQLMapping\":{\"joins\":[{\"tables\":[{\"name\":\"DOCUMENT\"},{\"name\":\"PEOPLE\"}],\"joinTablesStatement\":\"DOCUMENT.PERSONID=PEOPLE.PERSONID\",\"projectionMappings\":[{\"column\":\"DOCID\",\"field\":\"DOCID\",\"sort\":\"DOCID\"},{\"column\":\"PERSONID\",\"field\":\"PERSONID\",\"sort\":\"PERSONID\"},{\"column\":\"NAME\",\"field\":\"NAME\",\"sort\":\"NAME\"}]}],\"columnToFieldMap\":[{\"table\":\"DOCUMENT\",\"column\":\"DOCID\",\"field\":\"DOCID\"},{\"table\":\"PEOPLE\",\"column\":\"PERSONID\",\"field\":\"PERSONID\"},{\"table\":\"PEOPLE\",\"column\":\"NAME\",\"field\":\"NAME\"}]}}}";
             System.out.println(result);
             JSONAssert.assertEquals(expected, result, false);
@@ -121,16 +106,14 @@ public class ITCaseRDBMSToolsTest {
     @Test
     public void testSimpleIntegrationTest() {
         try {
-            String pathname = "/tmp/rdbms.json";
-            File json = new File(pathname);
+            File json = new File(outputFile);
             if (!json.delete()) {
                 System.out.println("Failed to remove " + json.getAbsolutePath());
             }
 
+            RDBMSTools.main(new String[]{"hibernateDialect=org.hibernate.dialect.H2Dialect","jndi=java:/mydatasource","outputFile="+outputFile});
 
-            RDBMSTools.main(new String[]{});
-
-            String result = Files.readAllLines(Paths.get(pathname), Charset.defaultCharset()).get(0);
+            String result = Files.readAllLines(Paths.get(outputFile), Charset.defaultCharset()).get(0);
             String expected = "{\"rdbms\":{\"fetch\":{\"expressions\":[{\"$statement\":{\"sql\":\"select * from NEED_TO_CHANGE\",\"type\":\"select\"}}]},\"dialect\":\"oracle\",\"SQLMapping\":{\"joins\":[{\"tables\":[{\"name\":\"DOCUMENT\"}],\"joinTablesStatement\":null,\"projectionMappings\":[{\"column\":\"DOCID\",\"field\":\"DOCID\",\"sort\":\"DOCID\"}]},{\"tables\":[{\"name\":\"PEOPLE\"}],\"joinTablesStatement\":null,\"projectionMappings\":[{\"column\":\"PERSONID\",\"field\":\"PERSONID\",\"sort\":\"PERSONID\"},{\"column\":\"NAME\",\"field\":\"NAME\",\"sort\":\"NAME\"}]}],\"columnToFieldMap\":[{\"table\":\"DOCUMENT\",\"column\":\"DOCID\",\"field\":\"DOCID\"},{\"table\":\"PEOPLE\",\"column\":\"PERSONID\",\"field\":\"PERSONID\"},{\"table\":\"PEOPLE\",\"column\":\"NAME\",\"field\":\"NAME\"}]}}}";
             //System.out.println(result);
             JSONAssert.assertEquals(expected, result, false);
