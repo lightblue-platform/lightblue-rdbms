@@ -64,18 +64,7 @@ public class ITCaseRDBMSToolsTest {
                 Context initCtx = new InitialContext();
                 DataSource ds = (DataSource) initCtx.lookup("java:/mydatasource");
                 Connection conn = ds.getConnection();
-                Statement stmt = conn.createStatement();
-                stmt.execute("CREATE TABLE People ( PersonID INT PRIMARY KEY, Name VARCHAR(255) );");
-                stmt.execute("CREATE TABLE Document ( DocID INT PRIMARY KEY, PersonID INT, FOREIGN KEY(PersonID) REFERENCES People(PersonID) );");
-
-
-                // Good resource for examples of procedure with h2 https://code.google.com/p/h2database/source/browse/trunk/h2/src/test/org/h2/samples/Function.java
-                stmt.execute("CREATE ALIAS getVersion FOR \"org.h2.engine.Constants.getVersion\"");
-                ResultSet rs = stmt.executeQuery("CALL getVersion()");
-                if (rs.next()) {
-                    System.out.println("Version: " + rs.getString(1));
-                }
-                stmt.close();
+                RDBMSTools.createTables(conn);
                 initCtx.close();
             } catch (NamingException ex) {
                 throw new IllegalStateException(ex);
@@ -91,7 +80,7 @@ public class ITCaseRDBMSToolsTest {
                 System.out.println("Failed to remove " + json.getAbsolutePath());
             }
 
-            RDBMSTools.main(new String[]{"hibernateDialect=org.hibernate.dialect.H2Dialect","jndi=java:/mydatasource","outputFile="+outputFile,"canonicalName=com.redhat.lightblue.tools.rdbms.JoinedTablesSQLMappingTranslator"});
+            RDBMSTools.main(new String[]{"hibernateDialect=org.hibernate.dialect.H2Dialect","jndi=java:/mydatasource","outputFile="+outputFile,"strategyCanonicalName=com.redhat.lightblue.tools.rdbms.JoinedTablesSQLMappingTranslator"});
 
             String result = Files.readAllLines(Paths.get(outputFile), Charset.defaultCharset()).get(0);
             String expected = "{\"rdbms\":{\"fetch\":{\"expressions\":[{\"$statement\":{\"sql\":\"select * from NEED_TO_CHANGE\",\"type\":\"select\"}}]},\"dialect\":\"oracle\",\"SQLMapping\":{\"joins\":[{\"tables\":[{\"name\":\"DOCUMENT\"},{\"name\":\"PEOPLE\"}],\"joinTablesStatement\":\"DOCUMENT.PERSONID=PEOPLE.PERSONID\",\"projectionMappings\":[{\"column\":\"DOCID\",\"field\":\"DOCID\",\"sort\":\"DOCID\"},{\"column\":\"PERSONID\",\"field\":\"PERSONID\",\"sort\":\"PERSONID\"},{\"column\":\"NAME\",\"field\":\"NAME\",\"sort\":\"NAME\"}]}],\"columnToFieldMap\":[{\"table\":\"DOCUMENT\",\"column\":\"DOCID\",\"field\":\"DOCID\"},{\"table\":\"PEOPLE\",\"column\":\"PERSONID\",\"field\":\"PERSONID\"},{\"table\":\"PEOPLE\",\"column\":\"NAME\",\"field\":\"NAME\"}]}}}";
