@@ -11,13 +11,17 @@ import org.hibernate.cfg.reveng.ReverseEngineeringStrategy;
 import javax.sql.DataSource;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.sql.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by lcestari on 8/19/14.
@@ -179,6 +183,20 @@ public class RDBMSTools {
 
     private static void generateLoad(RDBMSTools rdbmsTools) {
         try {
+            String pathname = rdbmsTools.url.split(":")[2];
+            final File fileInformed = new File(pathname);
+            File[] files = fileInformed.getParentFile().listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(final File dir, final String name) {
+                    return name.startsWith(fileInformed.getName());
+                }
+            });
+            for (final File file : files) {
+                if (!file.delete()) {
+                    System.out.println("Failed to remove " + file.getAbsolutePath());
+                }
+            }
+
             Class<?> aClass = Thread.currentThread().getContextClassLoader().loadClass("org.h2.jdbcx.JdbcDataSource");
             DataSource ds = (DataSource) aClass.newInstance();
             Method msetURL = aClass.getMethod("setURL", String.class);
@@ -193,11 +211,6 @@ public class RDBMSTools {
     public static void createTables(Connection conn) {
         try {
             Statement stmt = conn.createStatement();
-            stmt.execute("DROP ALIAS getVersion;");
-            stmt.execute("DROP TABLE Document;");
-            stmt.execute("DROP TABLE People;");
-            stmt.close();
-            stmt = conn.createStatement();
             stmt.execute("CREATE TABLE People ( PersonID INT PRIMARY KEY, Name VARCHAR(255) );");
             stmt.execute("CREATE TABLE Document ( DocID INT PRIMARY KEY, PersonID INT, FOREIGN KEY(PersonID) REFERENCES People(PersonID) );");
             stmt.execute("CREATE ALIAS getVersion FOR \"org.h2.engine.Constants.getVersion\"");// Good resource for examples of procedure with h2 https://code.google.com/p/h2database/source/browse/trunk/h2/src/test/org/h2/samples/Function.java
