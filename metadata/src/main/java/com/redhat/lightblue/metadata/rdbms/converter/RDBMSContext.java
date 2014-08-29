@@ -72,6 +72,7 @@ public class RDBMSContext<T> {
     private FieldAccessRoleEvaluator fieldAccessRoleEvaluator;
     private String CRUDOperationName;
     private CRUDOperationContext crudOperationContext;
+    private String currentLoopOperator;
 
     public RDBMSContext() {
         inVar = new DynVar(this);
@@ -338,5 +339,13 @@ public class RDBMSContext<T> {
 
     public CRUDOperationContext getCrudOperationContext() {
         return crudOperationContext;
+    }
+
+    public void setCurrentLoopOperator(String currentLoopOperator) {
+        this.currentLoopOperator = currentLoopOperator;
+    }
+
+    public String getCurrentLoopOperator() {
+        return currentLoopOperator;
     }
 }

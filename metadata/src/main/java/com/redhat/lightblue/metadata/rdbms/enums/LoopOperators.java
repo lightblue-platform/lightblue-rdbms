@@ -28,7 +28,7 @@ public class LoopOperators {
     public static final String BREAK  = "break";
 
     static {
-        singleton.setValues(Arrays.asList("fail", "continue", "break"));
+        singleton.setValues(Arrays.asList(FAIL, CONTINUE, BREAK));
     }
 
     public static Set<String> getValues() {
