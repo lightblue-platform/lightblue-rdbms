@@ -215,4 +215,45 @@ public class RDBMSUtilsMetadata {
         return list;
     }
 
+    public static <T> List<T> buildAllMappedList(RDBMSContext<T> context, List<SelectStmt> inputStmt) {
+        if (context.getPreparedStatement() == null) {
+            throw new IllegalArgumentException("No statement supplied");
+        }
+        if (context.getRowMapper() == null) {
+            throw new IllegalArgumentException("No rowMapper supplied");
+        }
+        if (inputStmt == null) {
+            throw new IllegalArgumentException("No inputStmt supplied");
+        }
+        Error.push("buildMappedList");
+        getDataSource(context);
+        getConnection(context);
+        List<T> list = new ArrayList<>();
+        context.setResultList(list);
+        for (SelectStmt s : inputStmt){
+            try {
+                context.getConnection().prepareStatement(s.generateStatement());
+                executeUpdate(context);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        List<ResultSet> resultSetList = context.getResultSetList();
+        for (ResultSet rs : resultSetList) {
+            try {
+                while (rs.next()) {
+                    T o = context.getRowMapper().map(rs);
+                    list.add(o);
+                }
+                rs.close();
+            } catch (SQLException ex) {
+                LOGGER.error(ex.getMessage(), ex);
+            }
+        }
+        Error.pop();
+        close(context);
+        return list;
+    }
 }
