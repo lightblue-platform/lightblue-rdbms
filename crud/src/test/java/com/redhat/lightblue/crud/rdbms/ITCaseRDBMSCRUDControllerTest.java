@@ -27,7 +27,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 
 
-public class RDBMSCRUDControllerTest {
+public class ITCaseRDBMSCRUDControllerTest {
 
     public static DataSource dsMock = null;
     public static Connection cMock = null;
