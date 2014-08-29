@@ -23,9 +23,12 @@ import java.util.Set;
 
 public class LoopOperators {
     private static final com.redhat.lightblue.metadata.Enum singleton = new com.redhat.lightblue.metadata.Enum("loopOperator");
+    public static final String FAIL = "fail";
+    public static final String CONTINUE = "continue";
+    public static final String BREAK  = "break";
 
     static {
-        singleton.setValues(Arrays.asList("$fail", "$continue", "$break"));
+        singleton.setValues(Arrays.asList("fail", "continue", "break"));
     }
 
     public static Set<String> getValues() {

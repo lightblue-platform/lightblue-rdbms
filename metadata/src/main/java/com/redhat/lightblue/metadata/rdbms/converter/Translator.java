@@ -163,7 +163,7 @@ public abstract class Translator {
         SelectStmt baseStmt;
         List<Map.Entry<String,List<String>>> logicalStmt;
 
-        public TranslationContext(CRUDOperationContext c, RDBMSContext r, FieldTreeNode f) {
+        public TranslationContext(RDBMSContext r, FieldTreeNode f) {
             this.firstStmts = new LinkedList<>();
             this.fieldToProjectionMap = new HashMap<>();
             this.fieldToTablePkMap = new HashMap<>();
@@ -173,7 +173,7 @@ public abstract class Translator {
             this.nameOfTables = new HashSet<>();
             this.baseStmt =  new SelectStmt(Translator.this);
             this.logicalStmt =  new ArrayList<>();
-            this.c = c;
+            this.c = r.getCrudOperationContext();
             this.r = r;
             this.f = f;
             index();
@@ -229,6 +229,16 @@ public abstract class Translator {
                 FieldProjection i = (FieldProjection) p;
                 String sField = translatePath(i.getField());
                 String column = fieldToProjectionMap.get(sField).getColumn();
+
+                InOut in = new InOut();
+                InOut out = new InOut();
+                in.setColumn(column);
+                out.setColumn(column);
+                in.setField(i.getField());
+                out.setField(i.getField());
+
+                this.r.getIn().add(in);
+                this.r.getOut().add(out);
                 l.add(column);
             }
         }
@@ -270,13 +280,13 @@ public abstract class Translator {
         }
     }
 
-    public List<SelectStmt> translate(CRUDOperationContext c, RDBMSContext r) {
+    public List<SelectStmt> translate(RDBMSContext r) {
         LOGGER.debug("translate {}", r.getQueryExpression());
         com.redhat.lightblue.util.Error.push("translateQuery");
         FieldTreeNode f = r.getEntityMetadata().getFieldTreeRoot();
 
         try {
-            TranslationContext translationContext = new TranslationContext(c, r, f);
+            TranslationContext translationContext = new TranslationContext(r, f);
             preProcess(translationContext);
             recursiveTranslateQuery(translationContext,r.getQueryExpression());
             posProcess(translationContext);
