@@ -36,6 +36,11 @@
         </dependency>
         <dependency>
             <groupId>com.redhat.lightblue</groupId>
+            <artifactId>util</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.redhat.lightblue</groupId>
             <artifactId>metadata</artifactId>
             <version>${lightblue-core.version}</version>
         </dependency>
