@@ -30,6 +30,7 @@ import com.redhat.lightblue.metadata.rdbms.converter.RDBMSContext;
 import com.redhat.lightblue.metadata.rdbms.converter.Translator;
 import com.redhat.lightblue.metadata.rdbms.enums.ExpressionOperators;
 import com.redhat.lightblue.metadata.rdbms.enums.IfOperators;
+import com.redhat.lightblue.metadata.rdbms.enums.LoopOperators;
 import com.redhat.lightblue.metadata.rdbms.model.*;
 import com.redhat.lightblue.metadata.rdbms.util.Column;
 import com.redhat.lightblue.util.JsonDoc;
@@ -146,6 +147,8 @@ public class RDBMSProcessor {
                 default:
                     throw new IllegalStateException("New implementation of Expression not present in ExpressionOperators");
             }
+            //reset the loop operator
+            rdbmsContext.setCurrentLoopOperator(null);
         }
     }
 
@@ -174,6 +177,12 @@ public class RDBMSProcessor {
         rdbmsContext.getOutVar().put(0, Integer.class, temp);
         int loopTimes = f.getLoopTimes();
         for (int i = 0; i < loopTimes; i++) {
+            if(LoopOperators.BREAK.equals(rdbmsContext.getCurrentLoopOperator())){
+                break;
+            }else if(LoopOperators.CONTINUE.equals(rdbmsContext.getCurrentLoopOperator())){
+                rdbmsContext.getOutVar().update(i + 1, temp);
+                continue;
+            }
             recursiveExpressionCall(rdbmsContext, op, f.getExpressions());
             rdbmsContext.getOutVar().update(i + 1, temp);
         }
@@ -181,7 +190,6 @@ public class RDBMSProcessor {
 
     private static void recursiveForEachCall( RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList, ForEach e) {
         Path field = e.getIterateOverField();
-
 
         List values = null;
         String key = field.toString();
@@ -218,9 +226,12 @@ public class RDBMSProcessor {
         if (then.getExpressions() != null && !then.getExpressions().isEmpty()) {
             recursiveExpressionCall(rdbmsContext, op, then.getExpressions());
         } else {
-            // "$fail", "$continue", "$break"
-            // TODO put the flang into the context and make the static methods aware of it
-            then.getLoopOperator();
+            String loopOperator = then.getLoopOperator();
+            if(LoopOperators.FAIL.equals(loopOperator)){
+                throw new RuntimeException("Conditionals informed lead to a failure specified in RDBMS metadata");
+            }else{
+                rdbmsContext.setCurrentLoopOperator(loopOperator);
+            }
         }
     }
 
