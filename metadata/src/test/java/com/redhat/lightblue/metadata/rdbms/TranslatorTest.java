@@ -93,6 +93,7 @@ public class TranslatorTest {
         rdbms.setSQLMapping(sQLMapping);
         rdbmsContext.setProjection(new FieldProjection(new Path("x"), true, true));
         rdbmsContext.setRdbms(rdbms);
+        rdbmsContext.setCrudOperationContext(crud);
     }
 
     @After
@@ -106,7 +107,7 @@ public class TranslatorTest {
         exception.expect(com.redhat.lightblue.util.Error.class);
         String s = "{\"objectType\":\"error\",\"context\":\"translateQuery\",\"errorCode\":\"Not supported query\",\"msg\":\"q=null\"}";
         exception.expectMessage(JsonUtils.json(s).toString());
-        cut.translate(crud, rdbmsContext);
+        cut.translate(rdbmsContext);
     }
 
 
@@ -115,14 +116,14 @@ public class TranslatorTest {
         exception.expect(com.redhat.lightblue.util.Error.class);
         exception.expectMessage("{\"objectType\":\"error\",\"context\":\"translateQuery\",\"errorCode\":\"not supported operator\",\"msg\":\"{\\\"array\\\":\\\"z\\\",\\\"contains\\\":\\\"$any\\\",\\\"values\\\":[1,2,3,4,5]}\"}");
         rdbmsContext.setQueryExpression(generateQuery(arrContains1));
-        cut.translate(crud, rdbmsContext);
+        cut.translate(rdbmsContext);
 
     }
 
     @Test
     public void testArrayContainsAll() throws Exception {
         rdbmsContext.setQueryExpression(generateQuery(arrContains2));
-        List<SelectStmt> translate = cut.translate(crud, rdbmsContext);
+        List<SelectStmt> translate = cut.translate(rdbmsContext);
         Assert.assertNotNull(translate);
         Assert.assertTrue("translate size is different than 1", translate.size() == 1);
         String expected = "SELECT xyz.x1 FROM 123 AS xyz ,K AS w WHERE  xyz.c1 = w.c2  AND w.z1 IN (\"1\",\"2\",\"3\",\"4\",\"5\") ";
@@ -133,7 +134,7 @@ public class TranslatorTest {
     @Test
     public void testValue() throws Exception {
         rdbmsContext.setQueryExpression(generateQuery(valueQuery1));
-        List<SelectStmt> translate = cut.translate(crud, rdbmsContext);
+        List<SelectStmt> translate = cut.translate(rdbmsContext);
         Assert.assertNotNull(translate);
         Assert.assertTrue("translate size is different than 1", translate.size() == 1);
         String expected = "SELECT xyz.x1 FROM 123 AS xyz ,K AS w WHERE  xyz.c1 = w.c2  AND xyz.x1 = \"stringXPTO\" ";
@@ -143,7 +144,7 @@ public class TranslatorTest {
     @Test
     public void testField() throws Exception {
         rdbmsContext.setQueryExpression(generateQuery(fieldQuery1));
-        List<SelectStmt> translate = cut.translate(crud, rdbmsContext);
+        List<SelectStmt> translate = cut.translate(rdbmsContext);
         Assert.assertNotNull(translate);
         Assert.assertTrue("translate size is different than 1", translate.size() == 1);
         String expected = "SELECT xyz.x1 FROM 123 AS xyz ,K AS w ,YYYY AS YyYy WHERE  xyz.c1 = w.c2  AND xyz.x1 = YyYy.y ";
@@ -153,7 +154,7 @@ public class TranslatorTest {
     @Test
     public void testNary() throws Exception {
         rdbmsContext.setQueryExpression(generateQuery(naryQuery1));
-        List<SelectStmt> translate = cut.translate(crud, rdbmsContext);
+        List<SelectStmt> translate = cut.translate(rdbmsContext);
         Assert.assertNotNull(translate);
         Assert.assertTrue("translate size is different than 1", translate.size() == 1);
         String expected = "SELECT xyz.x1 FROM 123 AS xyz ,K AS w WHERE  xyz.c1 = w.c2  AND xyz.x1 IN (\"1\",\"2\",\"3\",\"4\",\"5\") ";
@@ -163,7 +164,7 @@ public class TranslatorTest {
     @Test
     public void testRegex() throws Exception {
         rdbmsContext.setQueryExpression(generateQuery(regexQuery1));
-        List<SelectStmt> translate = cut.translate(crud, rdbmsContext);
+        List<SelectStmt> translate = cut.translate(rdbmsContext);
         Assert.assertNotNull(translate);
         Assert.assertTrue("translate size is different than 1", translate.size() == 1);
         String expected = "SELECT xyz.x1 FROM 123 AS xyz ,K AS w WHERE  xyz.c1 = w.c2  AND REGEXP_LIKE(xyz.x1,'*pat*','c') ";
@@ -173,7 +174,7 @@ public class TranslatorTest {
     @Test
     public void testUnary() throws Exception {
         rdbmsContext.setQueryExpression(generateQuery(unaryQuery1));
-        List<SelectStmt> translate = cut.translate(crud, rdbmsContext);
+        List<SelectStmt> translate = cut.translate(rdbmsContext);
         Assert.assertNotNull(translate);
         Assert.assertTrue("translate size is different than 1", translate.size() == 1);
         String expected = "SELECT xyz.x1 FROM 123 AS xyz ,K AS w WHERE  xyz.c1 = w.c2  AND xyz.x1 <> \"stringXPTO\" ";
@@ -183,7 +184,7 @@ public class TranslatorTest {
     @Test
     public void testNaryLogical() throws Exception {
         rdbmsContext.setQueryExpression(generateQuery(naryLogicalQuery1));
-        List<SelectStmt> translate = cut.translate(crud, rdbmsContext);
+        List<SelectStmt> translate = cut.translate(rdbmsContext);
         Assert.assertNotNull(translate);
         Assert.assertTrue("translate size is different than 1", translate.size() == 1);
         String expected = "SELECT xyz.x1 FROM 123 AS xyz ,K AS w ,123 AS xyz ,K AS w ,YYYY AS YyYy ,123 AS xyz ,K AS w ,123 AS xyz ,K AS w WHERE  xyz.c1 = w.c2  AND  xyz.c1 = w.c2  AND  xyz.c1 = w.c2  AND  xyz.c1 = w.c2  AND (xyz.x1 = \"stringXPTO\" or xyz.x1 = YyYy.y or xyz.x1 IN (\"1\",\"2\",\"3\",\"4\",\"5\") or xyz.x1 <> \"stringXPTO\")  ";
