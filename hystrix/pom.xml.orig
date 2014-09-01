@@ -21,13 +21,22 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.redhat.lightblue.rdbms</groupId>
+<<<<<<< HEAD
         <artifactId>rdbms-pom</artifactId>
-         <version>0.9.1-SNAPSHOT</version>
+        <version>0.1.0-SNAPSHOT</version>
+=======
+       <artifactId>rdbms-pom</artifactId>
+       <version>0.9.1-SNAPSHOT</version>
+>>>>>>> moved the pom version to the same version as the other repositories
     </parent>
     <groupId>com.redhat.lightblue.rdbms</groupId>
-    <artifactId>rdbms-metadata</artifactId>
+    <artifactId>rdbms-hystrix</artifactId>
     <packaging>jar</packaging>
-    <version>0.9.1-SNAPSHOT</version>
+<<<<<<< HEAD
+    <version>0.1.0-SNAPSHOT</version>
+=======
+   <version>0.9.1-SNAPSHOT</version>
+>>>>>>> moved the pom version to the same version as the other repositories
     <name>lightblue: ${project.groupId}|${project.artifactId}</name>
     <dependencies>
         <dependency>
@@ -43,6 +52,11 @@
         <dependency>
             <groupId>com.netflix.hystrix</groupId>
             <artifactId>hystrix-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.redhat.lightblue.rdbms</groupId>
+            <artifactId>rdbms-metadata</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

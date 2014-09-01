@@ -28,7 +28,11 @@
     <groupId>com.redhat.lightblue.rdbms</groupId>
     <artifactId>rdbms-pom</artifactId>
     <packaging>pom</packaging>
+<<<<<<< HEAD
+    <version>0.1.0-SNAPSHOT</version>
+=======
     <version>0.9.1-SNAPSHOT</version>
+>>>>>>> moved the pom version to the same version as the other repositories
     <name>lightblue-rdbms: ${project.groupId}|${project.artifactId}</name>
     <licenses>
         <license>
