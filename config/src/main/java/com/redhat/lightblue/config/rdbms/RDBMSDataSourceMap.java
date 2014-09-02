@@ -24,6 +24,7 @@ import com.redhat.lightblue.config.DataSourceConfiguration;
 import com.redhat.lightblue.config.DataSourcesConfiguration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +43,16 @@ public class RDBMSDataSourceMap implements RDBMSDataSourceResolver {
     private final Map<String, DataSource> dsMap = new HashMap<>();
 
     public RDBMSDataSourceMap(DataSourcesConfiguration ds) {
-        datasources = ds.getDataSourcesByType(RDBMSDataSourceConfiguration.class);
+        Map<String, DataSourceConfiguration> x = ds.getDataSourcesByType(RDBMSDataSourceConfiguration.class);
         databases = new HashMap<>();
-        for (DataSourceConfiguration cfg : datasources.values()) {
-            databases.put(((RDBMSDataSourceConfiguration) cfg).getDatabaseName(), cfg);
+        datasources = new HashMap<>();
+        for (DataSourceConfiguration cfg : x.values()) {
+            String databaseName = ((RDBMSDataSourceConfiguration) cfg).getDatabaseName();
+            databases.put(databaseName, cfg);
+            List<String> dsList = ((RDBMSDataSourceConfiguration) cfg).getDataSourceName();
+            for (String s : dsList){
+                datasources.put(s, cfg);
+            }
         }
     }
 
@@ -55,11 +62,10 @@ public class RDBMSDataSourceMap implements RDBMSDataSourceResolver {
         try {
             if (store.getDatasourceName() != null) {
                 LOGGER.debug("datasource:{}", store.getDatasourceName());
-                getAndPut(dsMap, datasources, store.getDatasourceName());
-
+                ds = getAndPut(dsMap, datasources, store.getDatasourceName());
             } else if (store.getDatabaseName() != null) {
                 LOGGER.debug("databaseName:{}", store.getDatabaseName());
-                getAndPut(dbMap, databases, store.getDatabaseName());
+                ds = getAndPut(dbMap, databases, store.getDatabaseName());
             }
         } catch (RuntimeException re) {
             LOGGER.error("Cannot get {}:{}", store, re);
