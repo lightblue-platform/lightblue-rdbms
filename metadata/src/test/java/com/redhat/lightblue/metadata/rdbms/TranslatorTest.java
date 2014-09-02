@@ -31,14 +31,14 @@ import java.util.List;
 import java.util.Set;
 
 public class TranslatorTest {
-    final String valueQuery1 = "{\"field\":\"x.\", \"op\":\"eq\", \"rvalue\":\"stringXPTO\"}";
-    final String fieldQuery1 = "{\"field\":\"x\", \"op\":\"eq\", \"rfield\":\"y\"}";
-    final String naryQuery1 = "{\"field\":\"x\", \"op\":\"in\", \"values\":[1,2,3,4,5]}";
+    final String valueQuery1 = "{\"field\":\"x.\", \"op\":\"$eq\", \"rvalue\":\"stringXPTO\"}";
+    final String fieldQuery1 = "{\"field\":\"x\", \"op\":\"$eq\", \"rfield\":\"y\"}";
+    final String naryQuery1 = "{\"field\":\"x\", \"op\":\"$in\", \"values\":[1,2,3,4,5]}";
     final String regexQuery1 = "{\"field\":\"x\", \"regex\":\"*pat*\"}";
-    final String unaryQuery1 = "{ \"not\": " + valueQuery1 + "}";
-    final String naryLogicalQuery1 = "{ \"or\" : [" + valueQuery1 + "," + fieldQuery1 + "," + naryQuery1 + "," + unaryQuery1 + "]}";
-    final String arrContains1 = "{\"array\":\"z\", \"contains\":\"any\", \"values\":[1,2,3,4,5]}";
-    final String arrContains2 = "{\"array\":\"z\", \"contains\":\"all\", \"values\":[1,2,3,4,5]}";
+    final String unaryQuery1 = "{ \"$not\": " + valueQuery1 + "}";
+    final String naryLogicalQuery1 = "{ \"$or\" : [" + valueQuery1 + "," + fieldQuery1 + "," + naryQuery1 + "," + unaryQuery1 + "]}";
+    final String arrContains1 = "{\"array\":\"z\", \"contains\":\"$any\", \"values\":[1,2,3,4,5]}";
+    final String arrContains2 = "{\"array\":\"z\", \"contains\":\"$all\", \"values\":[1,2,3,4,5]}";
 
     Translator cut = Translator.ORACLE;
     CRUDOperationContext crud = new TestCRUD();
@@ -114,7 +114,7 @@ public class TranslatorTest {
     @Test
     public void testArrayContainsAny() throws Exception {
         exception.expect(com.redhat.lightblue.util.Error.class);
-        exception.expectMessage("{\"objectType\":\"error\",\"context\":\"translateQuery\",\"errorCode\":\"not supported operator\",\"msg\":\"{\\\"array\\\":\\\"z\\\",\\\"contains\\\":\\\"any\\\",\\\"values\\\":[1,2,3,4,5]}\"}");
+        exception.expectMessage("{\"objectType\":\"error\",\"context\":\"translateQuery\",\"errorCode\":\"not supported operator\",\"msg\":\"{\\\"array\\\":\\\"z\\\",\\\"contains\\\":\\\"$any\\\",\\\"values\\\":[1,2,3,4,5]}\"}");
         rdbmsContext.setQueryExpression(generateQuery(arrContains1));
         cut.translate(rdbmsContext);
 
