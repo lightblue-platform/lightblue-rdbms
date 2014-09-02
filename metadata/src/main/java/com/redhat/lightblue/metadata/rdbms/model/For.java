@@ -61,7 +61,7 @@ public class For extends Expression {
             throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No loopCounterVariableName informed");
         }
         if (expressions == null || expressions.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No $for's expressions informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No for's expressions informed");
         }
         T eT = p.newNode();
         p.putString(eT, "loopTimes", Integer.toString(loopTimes));
@@ -71,7 +71,7 @@ public class For extends Expression {
             expression.convert(p, o);
         }
         T s = p.newNode();
-        p.putObject(s, "$for", eT);
+        p.putObject(s, "for", eT);
 
         p.addObjectToArray(expressionsNode, s);
     }

@@ -459,7 +459,7 @@ public abstract class Translator {
     }
 
     //Possible subquery or it will need to run a query before this
-    //{ _id: 1, results: [ 82, 85, 88 ] } { _id: 2, results: [ 75, 88, 89 ] } ->{ results: { $elemMatch: { $gte: 80, $lt: 85 } } }->{ "_id" : 1, "results" : [ 82, 85, 88 ] }
+    //{ _id: 1, results: [ 82, 85, 88 ] } { _id: 2, results: [ 75, 88, 89 ] } ->{ results: { elemMatch: { gte: 80, lt: 85 } } }->{ "_id" : 1, "results" : [ 82, 85, 88 ] }
     protected void recursiveTranslateArrayElemMatch(TranslationContext c, ArrayMatchExpression expr) {
         FieldTreeNode arrayNode = resolve(c.f, expr.getArray());
         if (arrayNode instanceof ArrayField) {
@@ -574,7 +574,7 @@ public abstract class Translator {
         if (t.supportsEq()) {
             List<Object> values = translateValueList(t, expr.getValues());
             String f = expr.getField().toString();
-            String op = expr.getOp().toString().equals("$in") ? "IN" : "NOT IN";
+            String op = expr.getOp().toString().equals("in") ? "IN" : "NOT IN";
 
             ProjectionMapping fpm = c.fieldToProjectionMap.get(f);
             Join fJoin = c.projectionToJoinMap.get(fpm);

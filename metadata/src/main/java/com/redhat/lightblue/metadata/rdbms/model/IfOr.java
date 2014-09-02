@@ -26,14 +26,14 @@ public class IfOr extends If<If, If> {
     @Override
     public <T> void convert(MetadataParser<T> p, Object lastArrayNode, T node) {
         if (getConditions() == null || getConditions().size() < 2) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "$or/$any doesn't have enough conditionals");
+            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "or/any doesn't have enough conditionals");
         }
         Object eT;
         if (lastArrayNode == null) {
-            eT = p.newArrayField(node, "$or");
+            eT = p.newArrayField(node, "or");
         } else {
             T iT = p.newNode();
-            eT = p.newArrayField(iT, "$or");
+            eT = p.newArrayField(iT, "or");
             p.addObjectToArray(iT, eT);
             p.addObjectToArray(lastArrayNode, iT);
         }
@@ -45,11 +45,11 @@ public class IfOr extends If<If, If> {
     @Override
     public <T> If parse(MetadataParser<T> p, T ifT) {
         If x = null;
-        List<T> orArray = p.getObjectList(ifT, "$or");
+        List<T> orArray = p.getObjectList(ifT, "or");
         if (orArray != null) {
             x = parseIfs(p, orArray, new IfOr());
         } else {
-            List<T> anyArray = p.getObjectList(ifT, "$any");
+            List<T> anyArray = p.getObjectList(ifT, "any");
             if (anyArray != null) {
                 x = If.parseIfs(p, anyArray, new IfOr());
             }

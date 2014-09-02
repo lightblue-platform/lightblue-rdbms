@@ -50,7 +50,7 @@ public class Then implements ComplexConverter {
     }
 
     public String getName() {
-        return "$then";
+        return "then";
     }
 
     @Override
