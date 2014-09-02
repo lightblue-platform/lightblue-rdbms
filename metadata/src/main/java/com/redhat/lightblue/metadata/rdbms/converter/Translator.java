@@ -574,7 +574,7 @@ public abstract class Translator {
         if (t.supportsEq()) {
             List<Object> values = translateValueList(t, expr.getValues());
             String f = expr.getField().toString();
-            String op = expr.getOp().toString().equals("in") ? "IN" : "NOT IN";
+            String op = expr.getOp().toString().equals(NaryRelationalOperator._in.toString()) ?"IN" : "NOT IN";
 
             ProjectionMapping fpm = c.fieldToProjectionMap.get(f);
             Join fJoin = c.projectionToJoinMap.get(fpm);
