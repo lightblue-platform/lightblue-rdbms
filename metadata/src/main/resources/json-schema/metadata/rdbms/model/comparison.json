@@ -17,13 +17,13 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "string",
     "enum": [
-        "$eq",
-        "$neq",
-        "$lt",
-        "$gt",
-        "$lte",
-        "$gte",
-        "$in",
-        "$nin"
+        "eq",
+        "neq",
+        "lt",
+        "gt",
+        "lte",
+        "gte",
+        "in",
+        "nin"
     ]
 }

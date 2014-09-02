@@ -21,6 +21,6 @@ package com.redhat.lightblue.metadata.rdbms.model;
 public class Else extends Then {
     @Override
     public String getName() {
-        return "$else";
+        return "else";
     }
 }

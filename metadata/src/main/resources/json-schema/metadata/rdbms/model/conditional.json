@@ -17,7 +17,7 @@
     "$schema": "http://json-schema.org/draft-04/schema#",
     "type": "object",
     "properties": {
-        "$or": {
+        "or": {
             "description": "Match any",
             "type": "array",
             "minItems": 2,
@@ -25,23 +25,23 @@
                 "$ref": "if.json#/definitions/if"
             }
         },
-        "$any": {
+        "any": {
             "description": "Match any of these conditions.",
             "$ref": "#/properties/$or"
         },
-        "$and": {
+        "and": {
             "description": "Match all of these conditions.",
             "$ref": "#/properties/$or"
         },
-        "$all": {
+        "all": {
             "description": "Match all of these conditions.",
             "$ref": "#/properties/$and"
         },
-        "$not": {
+        "not": {
             "description": "Charge the evaluation from true to false vice versa",
             "$ref": "if.json#/definitions/if"
         },
-        "$fieldEmpty": {
+        "fieldEmpty": {
             "type": "object",
             "properties": {
                 "field": {
@@ -53,7 +53,7 @@
             ],
             "additionalProperties": false
         },
-        "$fieldCheckField": {
+        "fieldCheckField": {
             "type": "object",
             "properties": {
                 "op": {
@@ -73,7 +73,7 @@
             ],
             "additionalProperties": false
         },
-        "$fieldCheckValue": {
+        "fieldCheckValue": {
             "type": "object",
             "properties": {
                 "op": {
@@ -93,7 +93,7 @@
             ],
             "additionalProperties": false
         },
-        "$fieldCheckValues": {
+        "fieldCheckValues": {
             "type": "object",
             "properties": {
                 "op": {
@@ -118,7 +118,7 @@
             ],
             "additionalProperties": false
         },
-        "$fieldRegex": {
+        "fieldRegex": {
             "type": "object",
             "properties": {
                 "field": {
