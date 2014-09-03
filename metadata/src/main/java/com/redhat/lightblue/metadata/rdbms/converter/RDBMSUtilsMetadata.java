@@ -24,10 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -108,7 +105,10 @@ public class RDBMSUtilsMetadata {
         PreparedStatement ps = null;
         try {
             NamedParameterStatement nps = new NamedParameterStatement(context.getConnection(), context.getSql());
-            //nps. TODO read the input / output variables
+            DynVar dynVar = context.getInVar();
+            process(context,nps,dynVar);
+            dynVar = context.getOutVar();
+            process(context,nps,dynVar);
             ps = nps.getPrepareStatement();
         } catch (SQLException e) {
             // throw new Error (preserves current error context)
@@ -121,6 +121,59 @@ public class RDBMSUtilsMetadata {
         context.setPreparedStatement(ps);
         LOGGER.debug("getStatement() stop");
         return ps;
+    }
+    enum Classes {
+        Boolean,Short,Integer,Long,Double,String,Date,Time ;
+
+    }
+    public static void processDynVar(RDBMSContext context,NamedParameterStatement nps,DynVar dynVar) {
+        //only supports one non-null value now
+        try {
+            for(String key : dynVar.getKeys){
+                List values = dynVar.getValues(key);
+                if(values != null && values.size() > 0){
+                    Object o = values.get(0);
+                    if(o == null){
+                        continue;
+                    }
+                    Class clazz = dynVar.getFirstClassFromKey(key);
+                    Classes z = Classes.valueOf(clazz.getSimpleName());
+                    switch (z) {
+                        case Boolean:
+                            nps.setBoolean(key, (Boolean) o);
+                            break;
+                        case Short:
+                            nps.setInt(key, (Short) o);
+                            break;
+                        case Integer:
+                            nps.setInt(key, (Integer) o);
+                            break;
+                        case Long:
+                            nps.setLong(key, (Long)o);
+                            break;
+                        case Double:
+                            nps.setDouble(key, (Double) o);
+                            break;
+                        case String:
+                            nps.setString(key, o.toString());
+                            break;
+                        case Date:
+                            nps.setTimestamp(key, new Timestamp(((Date)o).getTime()));
+                            break;
+                        case Time:
+                            nps.setTime(key, (Time) o);
+                            break;
+                        default:
+                            throw new IllegalStateException("State not implemented! clazz:"+clazz+" z:"+z+" clazz.getSimpleName():"+clazz.getSimpleName());
+                    }
+                    if("byte[]".equals(clazz.getSimpleName())){
+                        nps.setBytes(key, (byte[]) o);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public static int executeUpdate(RDBMSContext context) {

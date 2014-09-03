@@ -155,6 +155,34 @@ public class NamedParameterStatement {
         }
     }
 
+    public void setTime(String name, Time value) throws SQLException {
+        int[] indexes = getIndexes(name);
+        for (int index : indexes) {
+            statement.setTime(index, value);
+        }
+    }
+
+    public void setDouble(String name, double value) throws SQLException {
+        int[] indexes = getIndexes(name);
+        for (int index : indexes) {
+            statement.setDouble(index, value);
+        }
+    }
+
+    public void setBoolean(String name, boolean value) throws SQLException {
+        int[] indexes = getIndexes(name);
+        for (int index : indexes) {
+            statement.setBoolean(index, value);
+        }
+    }
+
+    public void setBytes(String name, byte[] value) throws SQLException {
+        int[] indexes = getIndexes(name);
+        for (int index : indexes) {
+            statement.setBytes(index, value);
+        }
+    }
+
     public boolean execute() throws SQLException {
         return statement.execute();
     }
