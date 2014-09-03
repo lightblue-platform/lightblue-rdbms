@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by lcestari on 8/25/14.
@@ -48,7 +49,6 @@ public class DynVar {
         var.value = i;
     }
 
-
     public List getValues(String key){
         ArrayList list = new ArrayList();
         for (Var var : map.get(key)) {
@@ -57,17 +57,12 @@ public class DynVar {
         return list;
     }
 
-    public static void main(String[] args) {
-        //Testing the array of bytes
-        byte[] x = new byte[]{(byte)0, (byte)1};
-        System.out.println(x);
-        System.out.println(x.getClass());
-        System.out.println(x.hashCode());
-        Class<?> c = x.getClass();
-        if (c.isArray()) {
-            System.out.format("            Type: %s%n"
-                            + "  Component Type: %s%n",
-                   c, c.getComponentType());
-        }
+    public Set<String> getKeys(){
+        return map.keySet();
+    }
+
+    public Class getFirstClassFromKey(String key){
+        return map.get(key).get(0).valueClass;
     }
 }
+
