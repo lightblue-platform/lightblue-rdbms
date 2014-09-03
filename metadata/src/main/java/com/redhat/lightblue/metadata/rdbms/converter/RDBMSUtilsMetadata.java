@@ -108,7 +108,8 @@ public class RDBMSUtilsMetadata {
         PreparedStatement ps = null;
         try {
             NamedParameterStatement nps = new NamedParameterStatement(context.getConnection(), context.getSql());
-            //ps = .prepareStatement();
+            //nps. TODO read the input / output variables
+            ps = nps.getPrepareStatement();
         } catch (SQLException e) {
             // throw new Error (preserves current error context)
             LOGGER.error(e.getMessage(), e);
@@ -228,8 +229,7 @@ public class RDBMSUtilsMetadata {
         Error.push("buildMappedList");
         getDataSource(context);
         getConnection(context);
-        List<T> list = new ArrayList<>();
-        context.setResultList(list);
+
         for (SelectStmt s : inputStmt){
             try {
                 context.getConnection().prepareStatement(s.generateStatement());
@@ -239,7 +239,8 @@ public class RDBMSUtilsMetadata {
             }
         }
 
-
+        List<T> list = new ArrayList<>();
+        context.setResultList(list);
         List<ResultSet> resultSetList = context.getResultSetList();
         for (ResultSet rs : resultSetList) {
             try {

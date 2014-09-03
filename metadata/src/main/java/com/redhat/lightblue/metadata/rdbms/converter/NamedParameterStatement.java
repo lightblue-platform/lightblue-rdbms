@@ -170,4 +170,9 @@ public class NamedParameterStatement {
     public void close() throws SQLException {
         statement.close();
     }
+
+    public PreparedStatement getPrepareStatement(){
+        return statement;
+    }
+
 }
