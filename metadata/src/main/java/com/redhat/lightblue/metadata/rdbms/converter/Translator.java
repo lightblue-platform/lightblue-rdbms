@@ -438,7 +438,7 @@ public abstract class Translator {
                 fillWhere(c, c.baseStmt.getWhereConditionals(), fJoin);
                 String s = null;
                 if (t.supportsEq()) {
-                    s = fpm.getColumn() + " " + op + " " + "(\"" + StringUtils.join(values, "\",\"") + "\")";
+                    s = fpm.getColumn() + " " + op + " " + "('" + StringUtils.join(values, "','") + "')";
                 }else{
                     for (int i = 0; i < values.size(); i++) {
                         Object v = values.get(i);
@@ -580,7 +580,7 @@ public abstract class Translator {
             Join fJoin = c.projectionToJoinMap.get(fpm);
             fillTables(c, c.baseStmt.getFromTables(), fJoin);
             fillWhere(c, c.baseStmt.getWhereConditionals(), fJoin);
-            String s = fpm.getColumn() + " " + op + " " +  "(\"" +StringUtils.join(values, "\",\"")+"\")";
+            String s = fpm.getColumn() + " " + op + " " +  "('" +StringUtils.join(values, "','")+"')";
             addConditional(c, s);
         } else {
             throw Error.get("invalid field", expr.toString());
@@ -620,6 +620,7 @@ public abstract class Translator {
             fillWhere(c, c.baseStmt.getWhereConditionals(), fJoin);
 
             String s1 = !c.notOp? BINARY_TO_SQL.get(expr.getOp()): NOTBINARY_TO_SQL.get(expr.getOp());
+            r = r.replaceAll("\"","'");
             String s = fpm.getColumn() + " " + s1 + " " + r;
             addConditional(c, s);
         }

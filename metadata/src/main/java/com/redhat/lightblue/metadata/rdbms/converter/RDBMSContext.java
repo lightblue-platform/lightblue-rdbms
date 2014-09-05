@@ -47,7 +47,6 @@ public class RDBMSContext<T> {
     private PreparedStatement preparedStatement;
     private Boolean resultBoolean;
     private Integer resultInteger;
-    private List<ResultSet> resultSetList;
     private RowMapper<T> rowMapper;
     private List<T> resultList;
     private RDBMS rdbms;
@@ -135,14 +134,6 @@ public class RDBMSContext<T> {
 
     public void setResultInteger(Integer resultInteger) {
         this.resultInteger = resultInteger;
-    }
-
-    public List<ResultSet> getResultSetList() {
-        return resultSetList;
-    }
-
-    public void setResultSetList(List<ResultSet> resultSetList) {
-        this.resultSetList = resultSetList;
     }
 
     public RowMapper<T> getRowMapper() {

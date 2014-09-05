@@ -60,7 +60,7 @@ public class RDBMSCRUDController implements CRUDController {
     public CRUDInsertionResponse insert(CRUDOperationContext crudOperationContext, Projection projection) {
         LOGGER.debug("insert() start");
         Error.push("insert() start");
-
+        //crudOperationContext.getDocuments(); // input? or maybe the projection mapping the values to be processed
         CRUDInsertionResponse response = new CRUDInsertionResponse();
         int n = 0;
 

@@ -30,6 +30,7 @@ import com.redhat.lightblue.metadata.rdbms.converter.RDBMSContext;
 import com.redhat.lightblue.metadata.rdbms.converter.Translator;
 import com.redhat.lightblue.metadata.rdbms.enums.ExpressionOperators;
 import com.redhat.lightblue.metadata.rdbms.enums.IfOperators;
+import com.redhat.lightblue.metadata.rdbms.enums.LightblueOperators;
 import com.redhat.lightblue.metadata.rdbms.enums.LoopOperators;
 import com.redhat.lightblue.metadata.rdbms.model.*;
 import com.redhat.lightblue.metadata.rdbms.util.Column;
@@ -55,24 +56,38 @@ public class RDBMSProcessor {
         rdbmsContext.setDataSource(ds);
         rdbmsContext.setRowMapper(new VariableUpdateRowMapper(rdbmsContext));
 
-
-        //create the first SQL statements to run the RDBMS module
-        List<SelectStmt> inputStmt = Translator.ORACLE.translate(rdbmsContext);
-
-        Operation op = rdbmsContext.getRdbms().getOperationByName(rdbmsContext.getCRUDOperationName());
+        String crudOperationName = rdbmsContext.getCRUDOperationName();
+        if(crudOperationName.equals("find")){
+            crudOperationName = LightblueOperators.FETCH;
+        }
+        Operation op = rdbmsContext.getRdbms().getOperationByName(crudOperationName);
+        if(op == null){
+            op = new Operation();
+            op.setName(crudOperationName);
+            op.setBindings(new Bindings());
+            op.getBindings().setInList(new ArrayList<InOut>());
+            op.getBindings().setOutList(new ArrayList<InOut>());
+            rdbmsContext.getRdbms().setOperationByName(crudOperationName, op);
+        }
         op.getBindings().setInList(rdbmsContext.getIn());
         op.getBindings().setOutList(rdbmsContext.getOut());
 
-        rdbmsContext.setInitialInput(true);
-        new ExecuteUpdateCommand(rdbmsContext, inputStmt).execute();
-        rdbmsContext.setInitialInput(false);
+        if(rdbmsContext.getQueryExpression() != null) {
+            // Dynamically create the first SQL statements to generate the input for the next defined expressions
+            List<SelectStmt> inputStmt = Translator.ORACLE.translate(rdbmsContext);
 
-        mapInputWithBinding(rdbmsContext);
+            rdbmsContext.setInitialInput(true);
+            new ExecuteUpdateCommand(rdbmsContext, inputStmt).execute();
+            rdbmsContext.setInitialInput(false);
 
+            mapInputWithBinding(rdbmsContext);
+        }
+
+        // Process the defined expressions
         recursiveExpressionCall(rdbmsContext, op, op.getExpressionList());
 
         // processed final output
-        if(op.getExpressionList().isEmpty()){
+        if(op.getExpressionList() == null || op.getExpressionList().isEmpty()){
             convertInputToProjection(rdbmsContext);
         } else{
             convertOutputToProjection(rdbmsContext);
@@ -101,8 +116,8 @@ public class RDBMSProcessor {
         List<JsonDoc> l = new ArrayList<>();
 
         for (InOut io : inout) {
-            String field = io.getField().toString();
-            List values = dynVar.getValues(field);
+            String c = io.getColumn().toString();
+            List values = dynVar.getValues(c);
             JsonDoc jd = null;
             if(values.isEmpty()){
                 jd = new JsonDoc(NullNode.getInstance());
