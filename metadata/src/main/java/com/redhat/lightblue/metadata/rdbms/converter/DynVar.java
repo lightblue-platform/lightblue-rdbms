@@ -40,6 +40,9 @@ public class DynVar {
 
     public void put(Object o, Class<?> objectClass, Column column) {
         Var var = new Var(o,objectClass, column);
+        if(map.get(var.keyName) == null){
+            map.put(var.keyName, new ArrayList<Var>());
+        }
         map.get(var.keyName).add(var);
     }
 
@@ -51,6 +54,10 @@ public class DynVar {
 
     public List getValues(String key){
         ArrayList list = new ArrayList();
+        if( map.get(key) == null ||  map.get(key).isEmpty()){
+            return list;
+        }
+
         for (Var var : map.get(key)) {
             list.add(var.value);
         }
