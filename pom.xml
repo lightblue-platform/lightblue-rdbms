@@ -181,6 +181,7 @@
     </modules>
     <properties>
         <sonar.exclusions>**/*Test.java,**/*Exception.java</sonar.exclusions>
+        <lightblue-core.version>0.9.1-SNAPSHOT</lightblue-core.version>
     </properties>
     <build>
         <plugins>

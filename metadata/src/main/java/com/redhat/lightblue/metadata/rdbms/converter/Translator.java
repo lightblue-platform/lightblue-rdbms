@@ -18,6 +18,7 @@
  */
 package com.redhat.lightblue.metadata.rdbms.converter;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.metadata.*;
 import com.redhat.lightblue.metadata.rdbms.model.*;
@@ -78,7 +79,7 @@ public abstract class Translator {
 
     protected void generatePre(SelectStmt s, StringBuilder queryStr) {
         queryStr.append("SELECT ");
-        if(s.getDistic()){
+        if(s.getDistinct()){
             queryStr.append("DISTINCT ");
         }
     }
@@ -103,15 +104,12 @@ public abstract class Translator {
         for (String where : whereConditionals) {
             queryStr.append(where).append(" AND ");
         }
-        queryStr.deleteCharAt(queryStr.length()-1); //remove the last 'AND'
-        queryStr.deleteCharAt(queryStr.length()-1); //remove the last 'AND'
-        queryStr.deleteCharAt(queryStr.length()-1); //remove the last 'AND'
-        queryStr.deleteCharAt(queryStr.length()-1); //remove the last 'AND'
+        queryStr.delete(queryStr.length()-5,queryStr.length()-1);//remove the last 'AND'
     }
 
     protected void generateGroupBy(SelectStmt s, StringBuilder queryStr, List<String> groupBy) {
         if(groupBy != null && groupBy.size() < 0){
-            throw Error.get("GroupBy not supported", "no handler");
+            throw Error.get(RDBMSConstants.ERR_NO_GROUPBY, "no handler");
         }
     }
 
@@ -192,7 +190,7 @@ public abstract class Translator {
             List<String> l = new ArrayList<>();
             processProjection(p,l);
             if(l.size() == 0){
-                throw Error.get("no projection", p.toString());
+                throw Error.get(RDBMSConstants.ERR_NO_PROJECTION, p.toString());
             }
             lastStmt.setResultColumns(l);
             fillDefault(lastStmt);
@@ -221,10 +219,10 @@ public abstract class Translator {
                 }
             }else if (p instanceof ArrayRangeProjection) {
                 ArrayRangeProjection i = (ArrayRangeProjection) p;
-                throw Error.get("not supported projection", p.toString());
+                throw Error.get(RDBMSConstants.ERR_SUP_OPERATOR, p.toString());
             }else if (p instanceof ArrayQueryMatchProjection) {
                 ArrayQueryMatchProjection i = (ArrayQueryMatchProjection) p;
-                throw Error.get("not supported projection", p.toString());
+                throw Error.get(RDBMSConstants.ERR_SUP_OPERATOR, p.toString());
             }else if (p instanceof FieldProjection) {
                 FieldProjection i = (FieldProjection) p;
                 String sField = translatePath(i.getField());
@@ -299,7 +297,7 @@ public abstract class Translator {
             if(e instanceof com.redhat.lightblue.util.Error){
                 throw e;
             }
-            throw com.redhat.lightblue.util.Error.get("Invalid Object!", e.getMessage());
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_ILL_FORMED_METADATA, e.getMessage());
         } finally {
             com.redhat.lightblue.util.Error.pop();
         }
@@ -366,14 +364,14 @@ public abstract class Translator {
         } else if (q instanceof ValueComparisonExpression) {
             recursiveTranslateValueComparisonExpression(c, (ValueComparisonExpression) q);
         } else {
-            throw Error.get("Not supported query", q!=null?q.toString():"q=null");
+            throw Error.get(RDBMSConstants.ERR_SUP_QUERY, q!=null?q.toString():"q=null");
         }
     }
 
     protected FieldTreeNode resolve(FieldTreeNode fieldTreeNode, Path path) {
         FieldTreeNode node = fieldTreeNode.resolve(path);
         if (node == null) {
-            throw com.redhat.lightblue.util.Error.get("Invalid field", path.toString());
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.INV_FIELD, path.toString());
         }
         return node;
     }
@@ -426,7 +424,7 @@ public abstract class Translator {
                     op = !c.notOp?"NOT IN":"IN";
                     break;
                 default:
-                    throw com.redhat.lightblue.util.Error.get("Not mapped field", expr.toString());
+                    throw com.redhat.lightblue.util.Error.get(RDBMSConstants.NO_FIELD, expr.toString());
             }
             Type t = ((ArrayField)resolve(c.f, expr.getArray())).getElement().getType();
             if(op != null) {
@@ -450,11 +448,11 @@ public abstract class Translator {
                 }
                 addConditional(c, s);
             } else {
-                throw Error.get("not supported operator", expr.toString());
+                throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
             }
             c.clearTmp();
         } else {
-            throw com.redhat.lightblue.util.Error.get("Invalid field", expr.toString());
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.INV_FIELD, expr.toString());
         }
     }
 
@@ -471,10 +469,10 @@ public abstract class Translator {
                 String path = translatePath(expr.getArray());
                 // TODO Need to define what would happen in this scenario (not supported yet)
                 c.f = tmp;
-                throw Error.get("not supported operator", expr.toString());
+                throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
             }
         }
-        throw com.redhat.lightblue.util.Error.get("Invalid field", expr.toString());
+        throw com.redhat.lightblue.util.Error.get(RDBMSConstants.INV_FIELD, expr.toString());
     }
 
     protected void recursiveTranslateFieldComparison(TranslationContext c, FieldComparisonExpression expr) {
@@ -486,10 +484,10 @@ public abstract class Translator {
         int ln = lField.nAnys();
         if (rn > 0 && ln > 0) {
             // TODO Need to define what would happen in this scenario
-            throw Error.get("not supported operator", expr.toString());
+            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
         } else if (rn > 0 || ln > 0) {
             // TODO Need to define what would happen in this scenario
-            throw Error.get("not supported operator", expr.toString());
+            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
         } else {
             // No ANYs, direct comparison
             String f = expr.getField().toString();
@@ -583,12 +581,12 @@ public abstract class Translator {
             String s = fpm.getColumn() + " " + op + " " +  "('" +StringUtils.join(values, "','")+"')";
             addConditional(c, s);
         } else {
-            throw Error.get("invalid field", expr.toString());
+            throw Error.get(RDBMSConstants.INV_FIELD, expr.toString());
         }
     }
 
     protected void recursiveTranslateRegexMatchExpression(TranslationContext c,RegexMatchExpression expr){
-        throw Error.get("not supported operator", expr.toString());
+        throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
     }
 
     protected void recursiveTranslateUnaryLogicalExpression(TranslationContext c, UnaryLogicalExpression expr){
@@ -605,10 +603,10 @@ public abstract class Translator {
         int ln = lField.nAnys();
         if (ln > 0) {
             // TODO Need to define what would happen in this scenario
-            throw Error.get("not supported operator", expr.toString());
+            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
         } else if (ln > 0) {
             // TODO Need to define what would happen in this scenario
-            throw Error.get("not supported operator", expr.toString());
+            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
         } else {
             // No ANYs, direct comparison
             String f = lField.toString();
