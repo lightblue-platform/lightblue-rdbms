@@ -205,7 +205,6 @@ public abstract class Translator {
             selectStmt.setFromTables(baseStmt.getFromTables());
             selectStmt.setWhereConditionals(baseStmt.getWhereConditionals());
             selectStmt.setOrderBy(sortDependencies.getOrderBy());
-
             selectStmt.setRange(rdbmsContext.getFromToQueryRange());
         }
 

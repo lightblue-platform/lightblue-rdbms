@@ -73,6 +73,7 @@ public class RDBMSContext<T> {
     private String currentLoopOperator;
 
     public RDBMSContext() {
+        this.fromToQueryRange =  new Range();
         inVar = new DynVar(this);
         outVar = new DynVar(this);
     }
