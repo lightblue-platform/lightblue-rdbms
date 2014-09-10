@@ -18,6 +18,7 @@
  */
 package com.redhat.lightblue.metadata.rdbms.converter;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.rdbms.model.Join;
 import com.redhat.lightblue.metadata.rdbms.model.ProjectionMapping;
 import com.redhat.lightblue.query.RegexMatchExpression;
@@ -66,7 +67,7 @@ public class OracleTranslator extends Translator {
         fillWhere(c, c.baseStmt.getWhereConditionals(), fJoin);
 
         if(c.notOp){
-            throw Error.get("not supported operator", expr.toString());
+            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
         }
         String options = expr.isCaseInsensitive()?"i":"c";
         options = options + (expr.isDotAll()?"n":"");

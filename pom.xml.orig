@@ -28,11 +28,7 @@
     <groupId>com.redhat.lightblue.rdbms</groupId>
     <artifactId>rdbms-pom</artifactId>
     <packaging>pom</packaging>
-<<<<<<< HEAD
-    <version>0.1.0-SNAPSHOT</version>
-=======
     <version>0.9.1-SNAPSHOT</version>
->>>>>>> moved the pom version to the same version as the other repositories
     <name>lightblue-rdbms: ${project.groupId}|${project.artifactId}</name>
     <licenses>
         <license>
@@ -204,11 +200,14 @@
     </modules>
     <properties>
         <sonar.exclusions>**/*Test.java,**/*Exception.java</sonar.exclusions>
+<<<<<<< HEAD
         <sonar.jdbc.url>jdbc:mysql://127.0.0.1:3306/sonar?useUnicode=true&amp;characterEncoding=utf8&amp;rewriteBatchedStatements=true</sonar.jdbc.url>
         <sonar.jdbc.username>sonar</sonar.jdbc.username>
         <sonar.jdbc.password>sonar</sonar.jdbc.password>
         <sonar.host.url>http://127.0.0.1:8080</sonar.host.url>
         <sonar.projectName>lightblue-rdbms</sonar.projectName>
+=======
+>>>>>>> Fixes
         <lightblue-core.version>0.9.1-SNAPSHOT</lightblue-core.version>
     </properties>
     <build>

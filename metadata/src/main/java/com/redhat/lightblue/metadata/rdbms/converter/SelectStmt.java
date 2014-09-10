@@ -27,7 +27,7 @@ import java.util.List;
  * @author lcestari
  */
 public class SelectStmt {
-    private boolean distic;
+    private boolean distinct;
     private List<String> resultColumns = new ArrayList<>();
     private List<String> fromTables = new ArrayList<>();
     private LinkedList<String> whereConditionals = new LinkedList<>();
@@ -42,12 +42,12 @@ public class SelectStmt {
         this.t = t;
     }
 
-    public boolean getDistic() {
-        return distic;
+    public boolean getDistinct() {
+        return distinct;
     }
 
-    public void setDistic(boolean distic) {
-        this.distic = distic;
+    public void setDistinct(boolean distinct) {
+        this.distinct = distinct;
     }
 
     public List<String> getResultColumns() {

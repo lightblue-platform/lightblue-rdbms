@@ -115,7 +115,8 @@ public class NamedParameterStatement {
     private int[] getIndexes(String name) {
         int[] indexes = indexMap.get(name);
         if (indexes == null) {
-            throw new IllegalStateException("Parameter not found: " + name);
+            //throw new IllegalStateException("Parameter not found: " + name);
+            return new int[]{};// As the parameters doesnt specify the Statement it will belong, this will make possible to try indexes that weren't be used in this Statement
         }
         return indexes;
     }

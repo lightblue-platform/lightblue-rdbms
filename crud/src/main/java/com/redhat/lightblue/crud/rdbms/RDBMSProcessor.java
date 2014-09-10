@@ -18,10 +18,12 @@
  */
 package com.redhat.lightblue.crud.rdbms;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.redhat.lightblue.common.rdbms.RDBMSDataStore;
+import com.redhat.lightblue.crud.DocCtx;
 import com.redhat.lightblue.metadata.rdbms.converter.DynVar;
 import com.redhat.lightblue.metadata.rdbms.converter.SelectStmt;
 import com.redhat.lightblue.crud.CRUDOperationContext;
@@ -81,6 +83,17 @@ public class RDBMSProcessor {
             rdbmsContext.setInitialInput(false);
 
             mapInputWithBinding(rdbmsContext);
+        } else {
+            // if no query was informed, the RDBMS module will try to convert the data from the request
+            List<DocCtx> documents = rdbmsContext.getCrudOperationContext().getDocuments();
+            for (DocCtx docCtx : documents){
+                List<ColumnToField> columnToFieldMap = rdbmsContext.getRdbms().getSQLMapping().getColumnToFieldMap();
+                for (ColumnToField ctf : columnToFieldMap) {
+                    Path path = new Path(ctf.getField());
+                    JsonNode jsonNode = docCtx.get(path);
+                    rdbmsContext.getInVar().put(jsonNode.textValue(), String.class,Column.createTemp(ctf.getField(),String.class.getCanonicalName()));
+                }
+            }
         }
 
         // Process the defined expressions

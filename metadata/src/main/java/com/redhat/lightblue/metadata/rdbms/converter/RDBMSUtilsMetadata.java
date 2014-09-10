@@ -201,9 +201,6 @@ public class RDBMSUtilsMetadata {
     }
 
     public static <T> List<T> buildAllMappedList(RDBMSContext<T> context) {
-        if (context.getPreparedStatement() == null) {
-            throw new IllegalArgumentException("No statement supplied");
-        }
         if (context.getRowMapper() == null) {
             throw new IllegalArgumentException("No rowMapper supplied");
         }
@@ -211,6 +208,9 @@ public class RDBMSUtilsMetadata {
         getDataSource(context);
         getConnection(context);
         getStatement(context);
+        if (context.getPreparedStatement() == null) {
+            throw new IllegalArgumentException("No statement supplied");
+        }
         List<T> list = new ArrayList<>();
         context.setResultList(list);
 

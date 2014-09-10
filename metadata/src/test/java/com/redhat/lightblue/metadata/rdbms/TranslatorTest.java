@@ -105,7 +105,7 @@ public class TranslatorTest {
     @Test
     public void testNoQuery() throws Exception {
         exception.expect(com.redhat.lightblue.util.Error.class);
-        String s = "{\"objectType\":\"error\",\"context\":\"translateQuery\",\"errorCode\":\"Not supported query\",\"msg\":\"q=null\"}";
+        String s = "{\"objectType\":\"error\",\"context\":\"translateQuery\",\"errorCode\":\"rdbms:NoSupportedQuery\",\"msg\":\"q=null\"}";
         exception.expectMessage(JsonUtils.json(s).toString());
         cut.translate(rdbmsContext);
     }
@@ -114,7 +114,7 @@ public class TranslatorTest {
     @Test
     public void testArrayContainsAny() throws Exception {
         exception.expect(com.redhat.lightblue.util.Error.class);
-        exception.expectMessage("{\"objectType\":\"error\",\"context\":\"translateQuery\",\"errorCode\":\"not supported operator\",\"msg\":\"{\\\"array\\\":\\\"z\\\",\\\"contains\\\":\\\"$any\\\",\\\"values\\\":[1,2,3,4,5]}\"}");
+        exception.expectMessage("{\"objectType\":\"error\",\"context\":\"translateQuery\",\"errorCode\":\"rdbms:NoSupportedOperator\",\"msg\":\"{\\\"array\\\":\\\"z\\\",\\\"contains\\\":\\\"$any\\\",\\\"values\\\":[1,2,3,4,5]}\"}");
         rdbmsContext.setQueryExpression(generateQuery(arrContains1));
         cut.translate(rdbmsContext);
 

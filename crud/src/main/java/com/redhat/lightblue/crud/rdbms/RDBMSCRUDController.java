@@ -18,6 +18,7 @@
  */
 package com.redhat.lightblue.crud.rdbms;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.rdbms.converter.RDBMSContext;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.redhat.lightblue.common.rdbms.RDBMSDataSourceResolver;
@@ -68,15 +69,15 @@ public class RDBMSCRUDController implements CRUDController {
             EntityMetadata md = crudOperationContext.getEntityMetadata(crudOperationContext.getEntityName());
             if (md.getAccess().getFind().hasAccess(crudOperationContext.getCallerRoles())) {
                 FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, crudOperationContext.getCallerRoles());
-                RDBMSContext rdbmsContext = new RDBMSContext(null,null,null,projection,md,nodeFactory,rds,roleEval, crudOperationContext,"find");
+                RDBMSContext rdbmsContext = new RDBMSContext(null,null,null,projection,md,nodeFactory,rds,roleEval, crudOperationContext,"insert");
 
                 RDBMSProcessor.process(rdbmsContext);
 
                 crudOperationContext.getHookManager().queueHooks(crudOperationContext);
 
-                n= rdbmsContext.getResultInteger();
+                n= rdbmsContext.getResultInteger() == null? 0 : rdbmsContext.getResultInteger() ;
             } else {
-                crudOperationContext.addError(Error.get("No access", "find:" + crudOperationContext.getEntityName()));
+                crudOperationContext.addError(Error.get(RDBMSConstants.ERR_NO_ACCESS, "find:" + crudOperationContext.getEntityName()));
             }
         } finally {
             Error.pop();
@@ -101,7 +102,7 @@ public class RDBMSCRUDController implements CRUDController {
             EntityMetadata md = crudOperationContext.getEntityMetadata(crudOperationContext.getEntityName());
             if (md.getAccess().getFind().hasAccess(crudOperationContext.getCallerRoles())) {
                 FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, crudOperationContext.getCallerRoles());
-                RDBMSContext rdbmsContext = new RDBMSContext(null,null,null,projection,md,nodeFactory,rds,roleEval, crudOperationContext,"find");
+                RDBMSContext rdbmsContext = new RDBMSContext(null,null,null,projection,md,nodeFactory,rds,roleEval, crudOperationContext,"save");
 
                 RDBMSProcessor.process(rdbmsContext);
 
@@ -109,7 +110,7 @@ public class RDBMSCRUDController implements CRUDController {
 
                 n= rdbmsContext.getResultInteger();
             } else {
-                crudOperationContext.addError(Error.get("No access", "find:" + crudOperationContext.getEntityName()));
+                crudOperationContext.addError(Error.get(RDBMSConstants.ERR_NO_ACCESS, "find:" + crudOperationContext.getEntityName()));
             }
         } finally {
             Error.pop();
@@ -139,13 +140,13 @@ public class RDBMSCRUDController implements CRUDController {
             EntityMetadata md = crudOperationContext.getEntityMetadata(crudOperationContext.getEntityName());
             if (md.getAccess().getFind().hasAccess(crudOperationContext.getCallerRoles())) {
                 FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, crudOperationContext.getCallerRoles());
-                RDBMSContext rdbmsContext = new RDBMSContext(null,null,queryExpression,projection,md,nodeFactory,rds,roleEval, crudOperationContext,"find");
+                RDBMSContext rdbmsContext = new RDBMSContext(null,null,queryExpression,projection,md,nodeFactory,rds,roleEval, crudOperationContext,"update");
 
                 RDBMSProcessor.process(rdbmsContext);
 
                 crudOperationContext.getHookManager().queueHooks(crudOperationContext);
             } else {
-                crudOperationContext.addError(Error.get("No access", "find:" + crudOperationContext.getEntityName()));
+                crudOperationContext.addError(Error.get(RDBMSConstants.ERR_NO_ACCESS, "find:" + crudOperationContext.getEntityName()));
             }
         } finally {
             Error.pop();
@@ -171,13 +172,13 @@ public class RDBMSCRUDController implements CRUDController {
             EntityMetadata md = crudOperationContext.getEntityMetadata(crudOperationContext.getEntityName());
             if (md.getAccess().getFind().hasAccess(crudOperationContext.getCallerRoles())) {
                 FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, crudOperationContext.getCallerRoles());
-                RDBMSContext rdbmsContext = new RDBMSContext(null,null,queryExpression,null,md,nodeFactory,rds,roleEval, crudOperationContext,"find");
+                RDBMSContext rdbmsContext = new RDBMSContext(null,null,queryExpression,null,md,nodeFactory,rds,roleEval, crudOperationContext,"delete");
 
                 RDBMSProcessor.process(rdbmsContext);
 
                 crudOperationContext.getHookManager().queueHooks(crudOperationContext);
             } else {
-                crudOperationContext.addError(Error.get("No access", "find:" + crudOperationContext.getEntityName()));
+                crudOperationContext.addError(Error.get(RDBMSConstants.ERR_NO_ACCESS, "find:" + crudOperationContext.getEntityName()));
             }
         } finally {
             Error.pop();
@@ -215,7 +216,7 @@ public class RDBMSCRUDController implements CRUDController {
 
                 crudOperationContext.getHookManager().queueHooks(crudOperationContext);
             } else {
-                crudOperationContext.addError(Error.get("No access", "find:" + crudOperationContext.getEntityName()));
+                crudOperationContext.addError(Error.get(RDBMSConstants.ERR_NO_ACCESS, "find:" + crudOperationContext.getEntityName()));
             }
         } finally {
             Error.pop();
