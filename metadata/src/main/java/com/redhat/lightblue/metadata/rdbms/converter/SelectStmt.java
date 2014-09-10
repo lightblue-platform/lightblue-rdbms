@@ -34,8 +34,7 @@ public class SelectStmt {
     private List<String> groupBy = new ArrayList<>(); // TODO Future implementation
     private List<String> having = new ArrayList<>(); // TODO Future implementation
     private List<String> orderBy = new ArrayList<>();
-    private Long limit;
-    private Long offset;
+    private Range range;
     private Translator t;
 
     public SelectStmt(Translator t) {
@@ -98,23 +97,15 @@ public class SelectStmt {
         this.orderBy = orderBy;
     }
 
-    public Long getLimit() {
-        return limit;
-    }
-
-    public void setLimit(Long limit) {
-        this.limit = limit;
-    }
-
-    public Long getOffset() {
-        return offset;
-    }
-
-    public void setOffset(Long offset) {
-        this.offset = offset;
-    }
-
     public String generateStatement(){
         return t.generateStatement(this);
+    }
+
+    public Range getRange() {
+        return range;
+    }
+
+    public void setRange(Range range) {
+        this.range = range;
     }
 }

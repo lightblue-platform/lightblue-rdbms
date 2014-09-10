@@ -71,7 +71,7 @@ public abstract class Translator {
         generateWhere(selectStmt, queryStringBuilder, selectStmt.getWhereConditionals());
         generateGroupBy(selectStmt, queryStringBuilder, selectStmt.getGroupBy());
         generateOrderBy(selectStmt, queryStringBuilder, selectStmt.getOrderBy());
-        generateLimitOffset(selectStmt, queryStringBuilder, selectStmt.getLimit(), selectStmt.getOffset());
+        generateLimitOffset(selectStmt, queryStringBuilder, selectStmt.getRange());
         generatePos(selectStmt, queryStringBuilder);
 
         return queryStringBuilder.toString();
@@ -123,7 +123,9 @@ public abstract class Translator {
         }
     }
 
-    protected void generateLimitOffset(SelectStmt selectStmt, StringBuilder queryStringBuilder, Long limit, Long offset) {
+    protected void generateLimitOffset(SelectStmt selectStmt, StringBuilder queryStringBuilder, Range range) {
+        Long limit = range.getLimit();
+        Long offset = range.getOffset();
         if (limit != null && offset != null) {
             queryStringBuilder.append("LIMIT ").append(Long.toString(limit)).append(" OFFSET ").append(Long.toString(offset)).append(" ");
         } else if (limit != null) {
@@ -203,12 +205,8 @@ public abstract class Translator {
             selectStmt.setFromTables(baseStmt.getFromTables());
             selectStmt.setWhereConditionals(baseStmt.getWhereConditionals());
             selectStmt.setOrderBy(sortDependencies.getOrderBy());
-            selectStmt.setOffset(rdbmsContext.getFrom());
-            if(rdbmsContext.getTo() != null && rdbmsContext.getFrom() != null) {
-                selectStmt.setLimit(rdbmsContext.getTo() - rdbmsContext.getFrom()); // after the offset (M rows skipped), the remaining will be limited
-            }else{
-                selectStmt.setLimit(rdbmsContext.getTo());
-            }
+
+            selectStmt.setRange(rdbmsContext.getFromToQueryRange());
         }
 
         private void processProjection(Projection projection, List<String> resultColumns) {
@@ -313,7 +311,7 @@ public abstract class Translator {
     }
 
     protected void translateFromTo(TranslationContext translationContext) {
-        if(translationContext.rdbmsContext.getTo() != null || translationContext.rdbmsContext.getFrom() != null){
+        if(translationContext.rdbmsContext.getFromToQueryRange().isConfigured()){
             translationContext.hasSortOrLimit = true;
         }
     }
