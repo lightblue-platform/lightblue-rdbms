@@ -26,6 +26,10 @@ public class Range {
     private final Long from;
     private final Long to;
 
+    public Range() {
+        this(null,null);
+    }
+
     public Range(Long from, Long to) {
         this.from = from;
         this.to = to;
