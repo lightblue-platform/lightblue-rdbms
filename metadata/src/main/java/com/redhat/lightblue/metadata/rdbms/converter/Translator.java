@@ -63,84 +63,84 @@ public abstract class Translator {
         NARY_TO_SQL.put(NaryLogicalOperator._or, "or");
     }
 
-    public String generateStatement(SelectStmt s) {
-        StringBuilder queryStr = new StringBuilder();
-        generatePre(s, queryStr);
-        generateResultColumns(s, queryStr, s.getResultColumns());
-        generateFrom(s, queryStr, s.getFromTables());
-        generateWhere(s, queryStr, s.getWhereConditionals());
-        generateGroupBy(s, queryStr, s.getGroupBy());
-        generateOrderBy(s, queryStr, s.getOrderBy());
-        generateLimitOffset(s, queryStr, s.getLimit(), s.getOffset());
-        generatePos(s, queryStr);
+    public String generateStatement(SelectStmt selectStmt) {
+        StringBuilder queryStringBuilder = new StringBuilder();
+        generatePre(selectStmt, queryStringBuilder);
+        generateResultColumns(selectStmt, queryStringBuilder, selectStmt.getResultColumns());
+        generateFrom(selectStmt, queryStringBuilder, selectStmt.getFromTables());
+        generateWhere(selectStmt, queryStringBuilder, selectStmt.getWhereConditionals());
+        generateGroupBy(selectStmt, queryStringBuilder, selectStmt.getGroupBy());
+        generateOrderBy(selectStmt, queryStringBuilder, selectStmt.getOrderBy());
+        generateLimitOffset(selectStmt, queryStringBuilder, selectStmt.getLimit(), selectStmt.getOffset());
+        generatePos(selectStmt, queryStringBuilder);
 
-        return queryStr.toString();
+        return queryStringBuilder.toString();
     }
 
-    protected void generatePre(SelectStmt s, StringBuilder queryStr) {
-        queryStr.append("SELECT ");
-        if(s.getDistinct()){
-            queryStr.append("DISTINCT ");
+    protected void generatePre(SelectStmt selectStmt, StringBuilder queryStringBuilder) {
+        queryStringBuilder.append("SELECT ");
+        if(selectStmt.getDistinct()){
+            queryStringBuilder.append("DISTINCT ");
         }
     }
 
-    protected void generateResultColumns(SelectStmt s, StringBuilder queryStr, List<String> resultColumns) {
+    protected void generateResultColumns(SelectStmt selectStmt, StringBuilder queryStringBuilder, List<String> resultColumns) {
         for (String resultColumn : resultColumns) {
-            queryStr.append(resultColumn).append(" ,");
+            queryStringBuilder.append(resultColumn).append(" ,");
         }
-        queryStr.deleteCharAt(queryStr.length() - 1); //remove the last ','
+        queryStringBuilder.deleteCharAt(queryStringBuilder.length() - 1); //remove the last ','
     }
 
-    protected void generateFrom(SelectStmt s, StringBuilder queryStr, List<String> fromTables) {
-        queryStr.append("FROM ");
+    protected void generateFrom(SelectStmt selectStmt, StringBuilder queryStringBuilder, List<String> fromTables) {
+        queryStringBuilder.append("FROM ");
         for (String table : fromTables) {
-            queryStr.append(table).append(" ,");
+            queryStringBuilder.append(table).append(" ,");
         }
-        queryStr.deleteCharAt(queryStr.length()-1); //remove the last ','
+        queryStringBuilder.deleteCharAt(queryStringBuilder.length()-1); //remove the last ','
     }
 
-    protected void generateWhere(SelectStmt s, StringBuilder queryStr, LinkedList<String> whereConditionals) {
-        queryStr.append("WHERE ");
+    protected void generateWhere(SelectStmt selectStmt, StringBuilder queryStringBuilder, LinkedList<String> whereConditionals) {
+        queryStringBuilder.append("WHERE ");
         for (String where : whereConditionals) {
-            queryStr.append(where).append(" AND ");
+            queryStringBuilder.append(where).append(" AND ");
         }
-        queryStr.delete(queryStr.length()-5,queryStr.length()-1);//remove the last 'AND'
+        queryStringBuilder.delete(queryStringBuilder.length()-5,queryStringBuilder.length()-1);//remove the last 'AND'
     }
 
-    protected void generateGroupBy(SelectStmt s, StringBuilder queryStr, List<String> groupBy) {
-        if(groupBy != null && groupBy.size() < 0){
+    protected void generateGroupBy(SelectStmt selectStmt, StringBuilder queryStringBuilder, List<String> groupBy) {
+        if(groupBy != null && !groupBy.isEmpty()){
             throw Error.get(RDBMSConstants.ERR_NO_GROUPBY, "no handler");
         }
     }
 
-    protected void generateOrderBy(SelectStmt s, StringBuilder queryStr, List<String> orderBy) {
-        if(orderBy != null && orderBy.size() < 0) {
-            queryStr.append("ORDER BY ");
+    protected void generateOrderBy(SelectStmt selectStmt, StringBuilder queryStringBuilder, List<String> orderBy) {
+        if(orderBy != null && !orderBy.isEmpty()) {
+            queryStringBuilder.append("ORDER BY ");
             for (String order : orderBy) {
-                queryStr.append(order).append(" ,");
+                queryStringBuilder.append(order).append(" ,");
             }
-            queryStr.deleteCharAt(queryStr.length() - 1); //remove the last ',
+            queryStringBuilder.deleteCharAt(queryStringBuilder.length() - 1); //remove the last ','
         }
     }
 
-    protected void generateLimitOffset(SelectStmt s, StringBuilder queryStr, Long limit, Long offset) {
+    protected void generateLimitOffset(SelectStmt selectStmt, StringBuilder queryStringBuilder, Long limit, Long offset) {
         if (limit != null && offset != null) {
-            queryStr.append("LIMIT ").append(Long.toString(limit)).append(" OFFSET ").append(Long.toString(offset)).append(" ");
+            queryStringBuilder.append("LIMIT ").append(Long.toString(limit)).append(" OFFSET ").append(Long.toString(offset)).append(" ");
         } else if (limit != null) {
-            queryStr.append("LIMIT ").append(Long.toString(limit)).append(" ");
+            queryStringBuilder.append("LIMIT ").append(Long.toString(limit)).append(" ");
         } else if (offset != null) {
-            queryStr.append("OFFSET ").append(Long.toString(offset)).append(" ");
+            queryStringBuilder.append("OFFSET ").append(Long.toString(offset)).append(" ");
         }
     }
 
-    protected void generatePos(SelectStmt s, StringBuilder queryStr) {
+    protected void generatePos(SelectStmt selectStmt, StringBuilder queryStringBuilder) {
         // by default, intend nothing
     }
 
     protected class TranslationContext {
-        CRUDOperationContext c;
-        RDBMSContext r;
-        FieldTreeNode f;
+        CRUDOperationContext crudOperationContext;
+        RDBMSContext rdbmsContext;
+        FieldTreeNode fieldTreeNode;
         Map<String, ProjectionMapping> fieldToProjectionMap;
         Map<ProjectionMapping, Join> projectionToJoinMap;
         Map<String, ColumnToField> fieldToTablePkMap;
@@ -161,7 +161,7 @@ public abstract class Translator {
         SelectStmt baseStmt;
         List<Map.Entry<String,List<String>>> logicalStmt;
 
-        public TranslationContext(RDBMSContext r, FieldTreeNode f) {
+        public TranslationContext(RDBMSContext rdbmsContext, FieldTreeNode fieldTreeNode) {
             this.firstStmts = new LinkedList<>();
             this.fieldToProjectionMap = new HashMap<>();
             this.fieldToTablePkMap = new HashMap<>();
@@ -171,9 +171,9 @@ public abstract class Translator {
             this.nameOfTables = new HashSet<>();
             this.baseStmt =  new SelectStmt(Translator.this);
             this.logicalStmt =  new ArrayList<>();
-            this.c = r.getCrudOperationContext();
-            this.r = r;
-            this.f = f;
+            this.crudOperationContext = rdbmsContext.getCrudOperationContext();
+            this.rdbmsContext = rdbmsContext;
+            this.fieldTreeNode = fieldTreeNode;
             index();
         }
 
@@ -186,63 +186,63 @@ public abstract class Translator {
                 result.add(stmt);
             }
 
-            Projection p = r.getProjection();
-            List<String> l = new ArrayList<>();
-            processProjection(p,l);
-            if(l.size() == 0){
+            Projection p = rdbmsContext.getProjection();
+            List<String> resultColumns = new ArrayList<>();
+            processProjection(p,resultColumns);
+            if(resultColumns.size() == 0){
                 throw Error.get(RDBMSConstants.ERR_NO_PROJECTION, p.toString());
             }
-            lastStmt.setResultColumns(l);
+            lastStmt.setResultColumns(resultColumns);
             fillDefault(lastStmt);
             result.add(lastStmt);
 
             return result;
         }
 
-        private void fillDefault(SelectStmt stmt) {
-            stmt.setFromTables(baseStmt.getFromTables());
-            stmt.setWhereConditionals(baseStmt.getWhereConditionals());
-            stmt.setOrderBy(sortDependencies.getOrderBy());
-            stmt.setOffset(r.getFrom());
-            if(r.getTo() != null) {
-                stmt.setLimit(r.getTo() - r.getFrom()); // after the offset (M rows skipped), the remaining will be limited
+        private void fillDefault(SelectStmt selectStmt) {
+            selectStmt.setFromTables(baseStmt.getFromTables());
+            selectStmt.setWhereConditionals(baseStmt.getWhereConditionals());
+            selectStmt.setOrderBy(sortDependencies.getOrderBy());
+            selectStmt.setOffset(rdbmsContext.getFrom());
+            if(rdbmsContext.getTo() != null && rdbmsContext.getFrom() != null) {
+                selectStmt.setLimit(rdbmsContext.getTo() - rdbmsContext.getFrom()); // after the offset (M rows skipped), the remaining will be limited
             }else{
-                stmt.setLimit(r.getTo());
+                selectStmt.setLimit(rdbmsContext.getTo());
             }
         }
 
-        private void processProjection(Projection p, List<String> l) {
-            if(p instanceof ProjectionList){
-                ProjectionList i = (ProjectionList) p;
-                for (Projection pi : i.getItems()) {
-                    processProjection(pi,l);
+        private void processProjection(Projection projection, List<String> resultColumns) {
+            if(projection instanceof ProjectionList){
+                ProjectionList projectionList = (ProjectionList) projection;
+                for (Projection projection1 : projectionList.getItems()) {
+                    processProjection(projection1,resultColumns);
                 }
-            }else if (p instanceof ArrayRangeProjection) {
-                ArrayRangeProjection i = (ArrayRangeProjection) p;
-                throw Error.get(RDBMSConstants.ERR_SUP_OPERATOR, p.toString());
-            }else if (p instanceof ArrayQueryMatchProjection) {
-                ArrayQueryMatchProjection i = (ArrayQueryMatchProjection) p;
-                throw Error.get(RDBMSConstants.ERR_SUP_OPERATOR, p.toString());
-            }else if (p instanceof FieldProjection) {
-                FieldProjection i = (FieldProjection) p;
-                String sField = translatePath(i.getField());
+            }else if (projection instanceof ArrayRangeProjection) {
+                ArrayRangeProjection i = (ArrayRangeProjection) projection;
+                throw Error.get(RDBMSConstants.ERR_SUP_OPERATOR, projection.toString());
+            }else if (projection instanceof ArrayQueryMatchProjection) {
+                ArrayQueryMatchProjection i = (ArrayQueryMatchProjection) projection;
+                throw Error.get(RDBMSConstants.ERR_SUP_OPERATOR, projection.toString());
+            }else if (projection instanceof FieldProjection) {
+                FieldProjection fieldProjection = (FieldProjection) projection;
+                String sField = translatePath(fieldProjection.getField());
                 String column = fieldToProjectionMap.get(sField).getColumn();
 
                 InOut in = new InOut();
                 InOut out = new InOut();
                 in.setColumn(column);
                 out.setColumn(column);
-                in.setField(i.getField());
-                out.setField(i.getField());
+                in.setField(fieldProjection.getField());
+                out.setField(fieldProjection.getField());
 
-                this.r.getIn().add(in);
-                this.r.getOut().add(out);
-                l.add(column);
+                this.rdbmsContext.getIn().add(in);
+                this.rdbmsContext.getOut().add(out);
+                resultColumns.add(column);
             }
         }
 
         private void index() {
-            for (Join join : r.getRdbms().getSQLMapping().getJoins()) {
+            for (Join join : rdbmsContext.getRdbms().getSQLMapping().getJoins()) {
                 for (ProjectionMapping projectionMapping : join.getProjectionMappings()) {
                     String field = projectionMapping.getField();
                     fieldToProjectionMap.put(field, projectionMapping);
@@ -250,7 +250,7 @@ public abstract class Translator {
                 }
                 needDistinct = join.isNeedDistinct() || needDistinct;
             }
-            for (ColumnToField columnToField : r.getRdbms().getSQLMapping().getColumnToFieldMap()) {
+            for (ColumnToField columnToField : rdbmsContext.getRdbms().getSQLMapping().getColumnToFieldMap()) {
                 fieldToTablePkMap.put(columnToField.getField(), columnToField);
             }
         }
@@ -265,9 +265,9 @@ public abstract class Translator {
             firstStmts.clear();
             fieldToProjectionMap.clear();
             this.firstStmts = null;
-            this.c = null;
-            this.r = null;
-            this.f = null;
+            this.crudOperationContext = null;
+            this.rdbmsContext = null;
+            this.fieldTreeNode = null;
             this.clearTmp();
         }
 
@@ -278,15 +278,15 @@ public abstract class Translator {
         }
     }
 
-    public List<SelectStmt> translate(RDBMSContext r) {
-        LOGGER.debug("translate {}", r.getQueryExpression());
+    public List<SelectStmt> translate(RDBMSContext rdbmsContext) {
+        LOGGER.debug("translate {}", rdbmsContext.getQueryExpression());
         com.redhat.lightblue.util.Error.push("translateQuery");
-        FieldTreeNode f = r.getEntityMetadata().getFieldTreeRoot();
+        FieldTreeNode fieldTreeNode = rdbmsContext.getEntityMetadata().getFieldTreeRoot();
 
         try {
-            TranslationContext translationContext = new TranslationContext(r, f);
+            TranslationContext translationContext = new TranslationContext(rdbmsContext, fieldTreeNode);
             preProcess(translationContext);
-            recursiveTranslateQuery(translationContext,r.getQueryExpression());
+            recursiveTranslateQuery(translationContext, rdbmsContext.getQueryExpression());
             posProcess(translationContext);
             List<SelectStmt> translation = translationContext.generateFinalTranslation();
             return translation;
@@ -303,23 +303,23 @@ public abstract class Translator {
         }
     }
 
-    private void posProcess(TranslationContext t) {
-        t.checkJoins();
+    private void posProcess(TranslationContext translationContext) {
+        translationContext.checkJoins();
     }
 
-    private void preProcess(TranslationContext t) {
-        translateSort(t);
-        translateFromTo(t);
+    private void preProcess(TranslationContext translationContext) {
+        translateSort(translationContext);
+        translateFromTo(translationContext);
     }
 
-    protected void translateFromTo(TranslationContext t) {
-        if(t.r.getTo() != null || t.r.getFrom() != null){
-            t.hasSortOrLimit = true;
+    protected void translateFromTo(TranslationContext translationContext) {
+        if(translationContext.rdbmsContext.getTo() != null || translationContext.rdbmsContext.getFrom() != null){
+            translationContext.hasSortOrLimit = true;
         }
     }
 
     protected void translateSort(TranslationContext translationContext) {
-        Sort sort = translationContext.r.getSort();
+        Sort sort = translationContext.rdbmsContext.getSort();
         if(sort != null) {
             if (sort instanceof CompositeSortKey) {
                 CompositeSortKey c = (CompositeSortKey) sort;
@@ -333,199 +333,198 @@ public abstract class Translator {
         }
     }
 
-    protected void translateSortKey(TranslationContext t, SortKey k) {
-        String translatePath = translatePath(k.getField());
-        ProjectionMapping projectionMapping = t.fieldToProjectionMap.get(translatePath);
+    protected void translateSortKey(TranslationContext translationContext, SortKey sortKey) {
+        String translatePath = translatePath(sortKey.getField());
+        ProjectionMapping projectionMapping = translationContext.fieldToProjectionMap.get(translatePath);
         String field;
         if (projectionMapping.getSort() != null && projectionMapping.getSort().isEmpty()) {
             field = projectionMapping.getSort();
         } else {
             field = projectionMapping.getColumn();
         }
-        t.sortDependencies.getOrderBy().add(field);
-        t.hasSortOrLimit = true;
+        translationContext.sortDependencies.getOrderBy().add(field);
+        translationContext.hasSortOrLimit = true;
     }
 
-    protected void recursiveTranslateQuery(TranslationContext c, QueryExpression q) {
-        if (q instanceof ArrayContainsExpression) {
-            recursiveTranslateArrayContains(c, (ArrayContainsExpression) q);
-        } else if (q instanceof ArrayMatchExpression) {
-            recursiveTranslateArrayElemMatch(c, (ArrayMatchExpression) q);
-        } else if (q instanceof FieldComparisonExpression) {
-            recursiveTranslateFieldComparison(c, (FieldComparisonExpression) q);
-        } else if (q instanceof NaryLogicalExpression) {
-            recursiveTranslateNaryLogicalExpression(c, (NaryLogicalExpression) q);
-        } else if (q instanceof NaryRelationalExpression) {
-            recursiveTranslateNaryRelationalExpression(c, (NaryRelationalExpression) q);
-        } else if (q instanceof RegexMatchExpression) {
-            recursiveTranslateRegexMatchExpression(c, (RegexMatchExpression) q);
-        } else if (q instanceof UnaryLogicalExpression) {
-            recursiveTranslateUnaryLogicalExpression(c, (UnaryLogicalExpression) q);
-        } else if (q instanceof ValueComparisonExpression) {
-            recursiveTranslateValueComparisonExpression(c, (ValueComparisonExpression) q);
+    protected void recursiveTranslateQuery(TranslationContext translationContext, QueryExpression queryExpression) {
+        if (queryExpression instanceof ArrayContainsExpression) {
+            recursiveTranslateArrayContains(translationContext, (ArrayContainsExpression) queryExpression);
+        } else if (queryExpression instanceof ArrayMatchExpression) {
+            recursiveTranslateArrayElemMatch(translationContext, (ArrayMatchExpression) queryExpression);
+        } else if (queryExpression instanceof FieldComparisonExpression) {
+            recursiveTranslateFieldComparison(translationContext, (FieldComparisonExpression) queryExpression);
+        } else if (queryExpression instanceof NaryLogicalExpression) {
+            recursiveTranslateNaryLogicalExpression(translationContext, (NaryLogicalExpression) queryExpression);
+        } else if (queryExpression instanceof NaryRelationalExpression) {
+            recursiveTranslateNaryRelationalExpression(translationContext, (NaryRelationalExpression) queryExpression);
+        } else if (queryExpression instanceof RegexMatchExpression) {
+            recursiveTranslateRegexMatchExpression(translationContext, (RegexMatchExpression) queryExpression);
+        } else if (queryExpression instanceof UnaryLogicalExpression) {
+            recursiveTranslateUnaryLogicalExpression(translationContext, (UnaryLogicalExpression) queryExpression);
+        } else if (queryExpression instanceof ValueComparisonExpression) {
+            recursiveTranslateValueComparisonExpression(translationContext, (ValueComparisonExpression) queryExpression);
         } else {
-            throw Error.get(RDBMSConstants.ERR_SUP_QUERY, q!=null?q.toString():"q=null");
+            throw Error.get(RDBMSConstants.ERR_SUP_QUERY, queryExpression!=null?queryExpression.toString():"q=null");
         }
     }
 
     protected FieldTreeNode resolve(FieldTreeNode fieldTreeNode, Path path) {
-        FieldTreeNode node = fieldTreeNode.resolve(path);
-        if (node == null) {
+        FieldTreeNode fieldTreeNode1 = fieldTreeNode.resolve(path);
+        if (fieldTreeNode1 == null) {
             throw com.redhat.lightblue.util.Error.get(RDBMSConstants.INV_FIELD, path.toString());
         }
-        return node;
+        return fieldTreeNode1;
     }
 
     protected static String translatePath(Path p) {
-        StringBuilder str = new StringBuilder();
+        StringBuilder stringBuilder = new StringBuilder();
         int n = p.numSegments();
         for (int i = 0; i < n; i++) {
-            String s = p.head(i);
-            if (!s.equals(Path.ANY)) {
+            String head = p.head(i);
+            if (!head.equals(Path.ANY)) {
                 if (i > 0) {
-                    str.append('.');
+                    stringBuilder.append('.');
                 }
-                str.append(s);
+                stringBuilder.append(head);
             }
         }
-        return str.toString();
+        return stringBuilder.toString();
     }
 
-    protected List<Object> translateValueList(Type t, List<Value> values) {
+    protected List<Object> translateValueList(Type type, List<Value> values) {
         if (values == null || values.isEmpty()) {
             throw new IllegalArgumentException("Empty values");
         }
-        List<Object> ret = new ArrayList<>(values.size());
+        List<Object> objectList = new ArrayList<>(values.size());
         for (Value v : values) {
             Object value = v == null ? null : v.getValue();
             if (value != null) {
-                value = t.cast(value);
+                value = type.cast(value);
             }
-            ret.add(value);
+            objectList.add(value);
         }
-        return ret;
+        return objectList;
     }
 
-    protected void recursiveTranslateArrayContains(TranslationContext c, ArrayContainsExpression expr) {
-        FieldTreeNode arrayNode = resolve(c.f, expr.getArray());
+    protected void recursiveTranslateArrayContains(TranslationContext translationContext, ArrayContainsExpression arrayContainsExpression) {
+        FieldTreeNode arrayNode = resolve(translationContext.fieldTreeNode, arrayContainsExpression.getArray());
         if (arrayNode instanceof ArrayField) {
-            c.tmpType = ((ArrayField) arrayNode).getElement().getType();
-            c.tmpArray = expr.getArray();
-            c.tmpValues = expr.getValues();
-            String op;
-            switch (expr.getOp()) {
+            translationContext.tmpType = ((ArrayField) arrayNode).getElement().getType();
+            translationContext.tmpArray = arrayContainsExpression.getArray();
+            translationContext.tmpValues = arrayContainsExpression.getValues();
+            String operation;
+            switch (arrayContainsExpression.getOp()) {
                 case _all:
-                    op = !c.notOp?"IN":"NOT IN";
+                    operation = !translationContext.notOp?"IN":"NOT IN";
                     break;
                 case _any:
-                    op = null; //OR
+                    operation = null; //OR
                     break;
                 case _none:
-                    op = !c.notOp?"NOT IN":"IN";
+                    operation = !translationContext.notOp?"NOT IN":"IN";
                     break;
                 default:
-                    throw com.redhat.lightblue.util.Error.get(RDBMSConstants.NO_FIELD, expr.toString());
+                    throw com.redhat.lightblue.util.Error.get(RDBMSConstants.NO_FIELD, arrayContainsExpression.toString());
             }
-            Type t = ((ArrayField)resolve(c.f, expr.getArray())).getElement().getType();
-            if(op != null) {
-                List<Object> values = translateValueList(t, expr.getValues());
-                String f = expr.getArray().toString();
-                ProjectionMapping fpm = c.fieldToProjectionMap.get(f);
-                Join fJoin = c.projectionToJoinMap.get(fpm);
-                fillTables(c, c.baseStmt.getFromTables(), fJoin);
-                fillWhere(c, c.baseStmt.getWhereConditionals(), fJoin);
-                String s = null;
+            Type t = ((ArrayField)resolve(translationContext.fieldTreeNode, arrayContainsExpression.getArray())).getElement().getType();
+            if(operation != null) {
+                List<Object> values = translateValueList(t, arrayContainsExpression.getValues());
+                String field = arrayContainsExpression.getArray().toString();
+                ProjectionMapping projectionMapping = translationContext.fieldToProjectionMap.get(field);
+                Join join = translationContext.projectionToJoinMap.get(projectionMapping);
+                fillTables(translationContext, translationContext.baseStmt.getFromTables(), join);
+                fillWhere(translationContext, translationContext.baseStmt.getWhereConditionals(), join);
+                String result = null;
                 if (t.supportsEq()) {
-                    s = fpm.getColumn() + " " + op + " " + "('" + StringUtils.join(values, "','") + "')";
+                    result = projectionMapping.getColumn() + " " + operation + " " + "('" + StringUtils.join(values, "','") + "')";
                 }else{
                     for (int i = 0; i < values.size(); i++) {
                         Object v = values.get(i);
-                        s = s + fpm.getColumn() + " = " +v;
+                        result = result + projectionMapping.getColumn() + " = " +v;
                         if(i != values.size()-1){
-                            s = s +" OR ";
+                            result = result +" OR ";
                         }
                     }
                 }
-                addConditional(c, s);
+                addConditional(translationContext, result);
             } else {
-                throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
+                throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, arrayContainsExpression.toString());
             }
-            c.clearTmp();
+            translationContext.clearTmp();
         } else {
-            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.INV_FIELD, expr.toString());
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.INV_FIELD, arrayContainsExpression.toString());
         }
     }
 
     //Possible subquery or it will need to run a query before this
     //{ _id: 1, results: [ 82, 85, 88 ] } { _id: 2, results: [ 75, 88, 89 ] } ->{ results: { elemMatch: { gte: 80, lt: 85 } } }->{ "_id" : 1, "results" : [ 82, 85, 88 ] }
-    protected void recursiveTranslateArrayElemMatch(TranslationContext c, ArrayMatchExpression expr) {
-        FieldTreeNode arrayNode = resolve(c.f, expr.getArray());
+    protected void recursiveTranslateArrayElemMatch(TranslationContext translationContext, ArrayMatchExpression arrayMatchExpression) {
+        FieldTreeNode arrayNode = resolve(translationContext.fieldTreeNode, arrayMatchExpression.getArray());
         if (arrayNode instanceof ArrayField) {
-            ArrayElement el = ((ArrayField) arrayNode).getElement();
-            if (el instanceof ObjectArrayElement) {
-                FieldTreeNode tmp = c.f;
-                c.f = el;
-                recursiveTranslateQuery(c, expr.getElemMatch());
-                String path = translatePath(expr.getArray());
+            ArrayElement arrayElement = ((ArrayField) arrayNode).getElement();
+            if (arrayElement instanceof ObjectArrayElement) {
+                FieldTreeNode tmpFieldTreeNode = translationContext.fieldTreeNode;
+                translationContext.fieldTreeNode = arrayElement;
+                recursiveTranslateQuery(translationContext, arrayMatchExpression.getElemMatch());
+                String path = translatePath(arrayMatchExpression.getArray());
                 // TODO Need to define what would happen in this scenario (not supported yet)
-                c.f = tmp;
-                throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
+                translationContext.fieldTreeNode = tmpFieldTreeNode;
+                throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, arrayMatchExpression.toString());
             }
         }
-        throw com.redhat.lightblue.util.Error.get(RDBMSConstants.INV_FIELD, expr.toString());
+        throw com.redhat.lightblue.util.Error.get(RDBMSConstants.INV_FIELD, arrayMatchExpression.toString());
     }
 
-    protected void recursiveTranslateFieldComparison(TranslationContext c, FieldComparisonExpression expr) {
-        StringBuilder str = new StringBuilder();
+    protected void recursiveTranslateFieldComparison(TranslationContext translationContext, FieldComparisonExpression fieldComparisonExpression) {
         // We have to deal with array references here
-        Path rField = expr.getRfield();
-        Path lField = expr.getField();
-        int rn = rField.nAnys();
-        int ln = lField.nAnys();
-        if (rn > 0 && ln > 0) {
+        Path rField = fieldComparisonExpression.getRfield();
+        Path lField = fieldComparisonExpression.getField();
+        int rAnys = rField.nAnys();
+        int lAnys = lField.nAnys();
+        if (rAnys > 0 && lAnys > 0) {
             // TODO Need to define what would happen in this scenario
-            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
-        } else if (rn > 0 || ln > 0) {
+            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, fieldComparisonExpression.toString());
+        } else if (rAnys > 0 || lAnys > 0) {
             // TODO Need to define what would happen in this scenario
-            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
+            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, fieldComparisonExpression.toString());
         } else {
             // No ANYs, direct comparison
-            String f = expr.getField().toString();
-            String r = expr.getRfield().toString();
+            String field = fieldComparisonExpression.getField().toString();
+            String rfield = fieldComparisonExpression.getRfield().toString();
 
-            ProjectionMapping fpm = c.fieldToProjectionMap.get(f);
-            Join fJoin = c.projectionToJoinMap.get(fpm);
-            fillTables(c, c.baseStmt.getFromTables(), fJoin);
-            fillWhere(c, c.baseStmt.getWhereConditionals(), fJoin);
+            ProjectionMapping projectionMapping = translationContext.fieldToProjectionMap.get(field);
+            Join join = translationContext.projectionToJoinMap.get(projectionMapping);
+            fillTables(translationContext, translationContext.baseStmt.getFromTables(), join);
+            fillWhere(translationContext, translationContext.baseStmt.getWhereConditionals(), join);
 
-            ProjectionMapping rpm = c.fieldToProjectionMap.get(r);
-            Join rJoin = c.projectionToJoinMap.get(rpm);
-            fillTables(c, c.baseStmt.getFromTables(), rJoin);
-            fillWhere(c, c.baseStmt.getWhereConditionals(), rJoin);
+            ProjectionMapping projectionMapping1 = translationContext.fieldToProjectionMap.get(rfield);
+            Join join1 = translationContext.projectionToJoinMap.get(projectionMapping1);
+            fillTables(translationContext, translationContext.baseStmt.getFromTables(), join1);
+            fillWhere(translationContext, translationContext.baseStmt.getWhereConditionals(), join1);
 
-            String s1 = !c.notOp? BINARY_TO_SQL.get(expr.getOp()): NOTBINARY_TO_SQL.get(expr.getOp());
-            String s = fpm.getColumn() + " " + s1 + " " + rpm.getColumn();
-            addConditional(c, s);
+            String operator = !translationContext.notOp? BINARY_TO_SQL.get(fieldComparisonExpression.getOp()): NOTBINARY_TO_SQL.get(fieldComparisonExpression.getOp());
+            String result = projectionMapping.getColumn() + " " + operator + " " + projectionMapping1.getColumn();
+            addConditional(translationContext, result);
         }
     }
 
-    protected void addConditional(TranslationContext c, String s) {
-        if(c.logicalStmt.size() > 0){
-            c.logicalStmt.get(c.logicalStmt.size()-1).getValue().add(s);
+    protected void addConditional(TranslationContext translationContext, String conditional) {
+        if(translationContext.logicalStmt.size() > 0){
+            translationContext.logicalStmt.get(translationContext.logicalStmt.size()-1).getValue().add(conditional);
         } else {
-            c.baseStmt.getWhereConditionals().add(s);
+            translationContext.baseStmt.getWhereConditionals().add(conditional);
         }
     }
 
-    protected void fillWhere(TranslationContext c, List<String> wheres, Join fJoin) {
-        if(fJoin.getJoinTablesStatement() != null && !fJoin.getJoinTablesStatement().isEmpty()) {
-            wheres.add(fJoin.getJoinTablesStatement());
+    protected void fillWhere(TranslationContext translationContext, List<String> wheres, Join join) {
+        if(join.getJoinTablesStatement() != null && !join.getJoinTablesStatement().isEmpty()) {
+            wheres.add(join.getJoinTablesStatement());
         }
     }
 
-    protected void fillTables(TranslationContext c, List<String> fromTables, Join fJoin) {
-        for (Table table : fJoin.getTables()) {
-            if(c.nameOfTables.add(table.getName())){
+    protected void fillTables(TranslationContext translationContext, List<String> fromTables, Join join) {
+        for (Table table : join.getTables()) {
+            if(translationContext.nameOfTables.add(table.getName())){
                 LOGGER.warn("Table mentioned more than once in the same query. Possible N+1 problem");
             }
             if(table.getAlias() != null && !table.getAlias().isEmpty() ){
@@ -536,91 +535,91 @@ public abstract class Translator {
         }
     }
 
-    protected void recursiveTranslateNaryLogicalExpression(TranslationContext c, NaryLogicalExpression naryLogicalExpression){
+    protected void recursiveTranslateNaryLogicalExpression(TranslationContext translationContext, NaryLogicalExpression naryLogicalExpression){
         String ops = NARY_TO_SQL.get(naryLogicalExpression.getOp());
-        boolean b = c.logicalStmt.size() == 0;
-        c.logicalStmt.add( new AbstractMap.SimpleEntry<String,List<String>>(ops, new ArrayList<String>()));
+        boolean noStatement = translationContext.logicalStmt.size() == 0;
+        translationContext.logicalStmt.add( new AbstractMap.SimpleEntry<String,List<String>>(ops, new ArrayList<String>()));
         for (QueryExpression queryExpression : naryLogicalExpression.getQueries()) {
-            recursiveTranslateQuery(c,queryExpression);
+            recursiveTranslateQuery(translationContext,queryExpression);
         }
-        Map.Entry<String, List<String>> remove = c.logicalStmt.remove(c.logicalStmt.size()-1);
+        Map.Entry<String, List<String>> remove = translationContext.logicalStmt.remove(translationContext.logicalStmt.size()-1);
         String op = remove.getKey() + " ";
-        StringBuilder sb = new StringBuilder();
-        if(!b || c.baseStmt.getWhereConditionals().size() > 0){
-            sb.append("(");
+        StringBuilder conditionalStringBuilder = new StringBuilder();
+        if(!noStatement || !translationContext.baseStmt.getWhereConditionals().isEmpty()){
+            conditionalStringBuilder.append("(");
         }
         for (int i = 0; i < remove.getValue().size() ; i++) {
-            String s = remove.getValue().get(i);
+            String value = remove.getValue().get(i);
             if(i == (remove.getValue().size()-1)) {
-                sb.append(s);
-                if(!b || c.baseStmt.getWhereConditionals().size() > 0){
-                    sb.append(") ");
+                conditionalStringBuilder.append(value);
+                if(!noStatement || !translationContext.baseStmt.getWhereConditionals().isEmpty()){
+                    conditionalStringBuilder.append(") ");
                 }
             } else {
-                sb.append(s).append(" ").append(op);
+                conditionalStringBuilder.append(value).append(" ").append(op);
             }
         }
-        if(b) {
-            c.baseStmt.getWhereConditionals().add(sb.toString());
+        if(noStatement) {
+            translationContext.baseStmt.getWhereConditionals().add(conditionalStringBuilder.toString());
         } else {
-            c.logicalStmt.get(c.logicalStmt.size()-1).getValue().add(sb.toString());
+            translationContext.logicalStmt.get(translationContext.logicalStmt.size() - 1).getValue().add(conditionalStringBuilder.toString());
         }
     }
 
-    protected void recursiveTranslateNaryRelationalExpression(TranslationContext c, NaryRelationalExpression expr){
-        Type t = resolve(c.f, expr.getField()).getType();
+    protected void recursiveTranslateNaryRelationalExpression(TranslationContext translationContext, NaryRelationalExpression naryRelationalExpression){
+        Type t = resolve(translationContext.fieldTreeNode, naryRelationalExpression.getField()).getType();
         if (t.supportsEq()) {
-            List<Object> values = translateValueList(t, expr.getValues());
-            String f = expr.getField().toString();
-            String op = expr.getOp().toString().equals(NaryRelationalOperator._in.toString()) ?"IN" : "NOT IN";
+            List<Object> values = translateValueList(t, naryRelationalExpression.getValues());
+            String field = naryRelationalExpression.getField().toString();
+            String operator = naryRelationalExpression.getOp().toString().equals(NaryRelationalOperator._in.toString()) ?"IN" : "NOT IN";
 
-            ProjectionMapping fpm = c.fieldToProjectionMap.get(f);
-            Join fJoin = c.projectionToJoinMap.get(fpm);
-            fillTables(c, c.baseStmt.getFromTables(), fJoin);
-            fillWhere(c, c.baseStmt.getWhereConditionals(), fJoin);
-            String s = fpm.getColumn() + " " + op + " " +  "('" +StringUtils.join(values, "','")+"')";
-            addConditional(c, s);
+            ProjectionMapping fpm = translationContext.fieldToProjectionMap.get(field);
+            Join fJoin = translationContext.projectionToJoinMap.get(fpm);
+            fillTables(translationContext, translationContext.baseStmt.getFromTables(), fJoin);
+            fillWhere(translationContext, translationContext.baseStmt.getWhereConditionals(), fJoin);
+            String result = fpm.getColumn() + " " + operator + " " +  "('" +StringUtils.join(values, "','")+"')";
+            addConditional(translationContext, result);
         } else {
-            throw Error.get(RDBMSConstants.INV_FIELD, expr.toString());
+            throw Error.get(RDBMSConstants.INV_FIELD, naryRelationalExpression.toString());
         }
     }
 
-    protected void recursiveTranslateRegexMatchExpression(TranslationContext c,RegexMatchExpression expr){
-        throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
+    protected void recursiveTranslateRegexMatchExpression(TranslationContext translationContext,RegexMatchExpression regexMatchExpression){
+        throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, regexMatchExpression.toString());
     }
 
-    protected void recursiveTranslateUnaryLogicalExpression(TranslationContext c, UnaryLogicalExpression expr){
-        c.notOp = !c.notOp;
-        recursiveTranslateQuery(c, expr.getQuery());
-        c.notOp = !c.notOp;
+    protected void recursiveTranslateUnaryLogicalExpression(TranslationContext translationContext, UnaryLogicalExpression unaryLogicalExpression){
+        translationContext.notOp = !translationContext.notOp;
+        recursiveTranslateQuery(translationContext, unaryLogicalExpression.getQuery());
+        translationContext.notOp = !translationContext.notOp;
     }
 
-    protected void recursiveTranslateValueComparisonExpression(TranslationContext c, ValueComparisonExpression expr){
+    protected void recursiveTranslateValueComparisonExpression(TranslationContext translationContext, ValueComparisonExpression valueComparisonExpression){
         StringBuilder str = new StringBuilder();
         // We have to deal with array references here
-        Value rvalue = expr.getRvalue();
-        Path lField = expr.getField();
+        Value rvalue = valueComparisonExpression.getRvalue();
+        Path lField = valueComparisonExpression.getField();
         int ln = lField.nAnys();
         if (ln > 0) {
             // TODO Need to define what would happen in this scenario
-            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
+            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, valueComparisonExpression.toString());
         } else if (ln > 0) {
             // TODO Need to define what would happen in this scenario
-            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, expr.toString());
+            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, valueComparisonExpression.toString());
         } else {
             // No ANYs, direct comparison
-            String f = lField.toString();
-            String r = rvalue.toString();
+            String field = lField.toString();
+            String value = rvalue.toString();
 
-            ProjectionMapping fpm = c.fieldToProjectionMap.get(f);
-            Join fJoin = c.projectionToJoinMap.get(fpm);
-            fillTables(c, c.baseStmt.getFromTables(), fJoin);
-            fillWhere(c, c.baseStmt.getWhereConditionals(), fJoin);
+            ProjectionMapping projectionMapping = translationContext.fieldToProjectionMap.get(field);
+            Join join = translationContext.projectionToJoinMap.get(projectionMapping);
+            fillTables(translationContext, translationContext.baseStmt.getFromTables(), join);
+            fillWhere(translationContext, translationContext.baseStmt.getWhereConditionals(), join);
 
-            String s1 = !c.notOp? BINARY_TO_SQL.get(expr.getOp()): NOTBINARY_TO_SQL.get(expr.getOp());
-            r = r.replaceAll("\"","'");
-            String s = fpm.getColumn() + " " + s1 + " " + r;
-            addConditional(c, s);
+            String operator = !translationContext.notOp? BINARY_TO_SQL.get(valueComparisonExpression.getOp()): NOTBINARY_TO_SQL.get(valueComparisonExpression.getOp());
+            value = value.replaceAll("\"","'");
+            String conditional = projectionMapping.getColumn() + " " + operator + " " + value;
+            addConditional(translationContext, conditional);
         }
     }
 }
