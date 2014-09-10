@@ -41,6 +41,7 @@ import javax.sql.DataSource;
  * @param <T> type of object returned in List (resultList)
  */
 public class RDBMSContext<T> {
+    private Range fromToQueryRange;
     private DataSource dataSource;
     private String dataSourceName;
     private Connection connection;
@@ -56,8 +57,6 @@ public class RDBMSContext<T> {
     private QueryExpression queryExpression;
     private Projection projection;
     private Sort sort;
-    private Long from;
-    private Long to;
     private Map<String, Object> temporaryVariable;
     private List<InOut> in = new ArrayList<>();
     private List<InOut> out = new ArrayList<>();
@@ -80,8 +79,7 @@ public class RDBMSContext<T> {
 
     public RDBMSContext(Long from, Long to, QueryExpression queryExpression, Projection projection, EntityMetadata entityMetadata, JsonNodeFactory jsonNodeFactory, com.redhat.lightblue.common.rdbms.RDBMSDataSourceResolver RDBMSDataSourceResolver, FieldAccessRoleEvaluator fieldAccessRoleEvaluator,CRUDOperationContext crudOperationContext, String CRUDOperationName) {
         this();
-        this.from = from;
-        this.to = to;
+        this.fromToQueryRange =  new Range(from, to);
         this.queryExpression = queryExpression;
         this.projection = projection;
         this.entityMetadata = entityMetadata;
@@ -208,22 +206,6 @@ public class RDBMSContext<T> {
         this.sort = sort;
     }
 
-    public Long getFrom() {
-        return from;
-    }
-
-    public void setFrom(Long from) {
-        this.from = from;
-    }
-
-    public Long getTo() {
-        return to;
-    }
-
-    public void setTo(Long to) {
-        this.to = to;
-    }
-
     public Boolean getResultBoolean() {
         return resultBoolean;
     }
@@ -338,5 +320,13 @@ public class RDBMSContext<T> {
 
     public String getCurrentLoopOperator() {
         return currentLoopOperator;
+    }
+
+    public Range getFromToQueryRange() {
+        return fromToQueryRange;
+    }
+
+    public void setFromToQueryRange(Range fromToQueryRange) {
+        this.fromToQueryRange = fromToQueryRange;
     }
 }

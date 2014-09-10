@@ -37,9 +37,9 @@ public class OracleTranslator extends Translator {
     @Override
     protected void generateWhere(SelectStmt selectStmt, StringBuilder queryStringBuilder, LinkedList<String> whereConditionals) {
         super.generateWhere(selectStmt, queryStringBuilder,whereConditionals);
-        Long limit = selectStmt.getLimit();
-        Long offset = selectStmt.getOffset();
-        if (selectStmt.getLimit() != null && offset != null) {
+        Long limit = selectStmt.getRange().getLimit();
+        Long offset = selectStmt.getRange().getOffset();
+        if (limit != null && offset != null) {
             offset = offset +limit;
             queryStringBuilder.append("AND ROWNUM BETWEEN ").append(Long.toString(offset)).append(" AND ").append(Long.toString(limit)).append(" ");
         } else if (limit != null) {
@@ -50,8 +50,8 @@ public class OracleTranslator extends Translator {
     }
 
     @Override
-    protected void generateLimitOffset(SelectStmt selectStmt, StringBuilder queryStringBuilder, Long limit, Long offset) {
-        //Do nothing
+    protected void generateLimitOffset(SelectStmt selectStmt, StringBuilder queryStringBuilder, Range range) {
+        // Stop the default implementation to run
     }
 
     @Override
