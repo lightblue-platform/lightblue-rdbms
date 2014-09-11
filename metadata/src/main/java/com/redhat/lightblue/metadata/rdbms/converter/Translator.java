@@ -21,6 +21,7 @@ package com.redhat.lightblue.metadata.rdbms.converter;
 import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.metadata.*;
+import com.redhat.lightblue.metadata.rdbms.enums.LightblueOperators;
 import com.redhat.lightblue.metadata.rdbms.model.*;
 import com.redhat.lightblue.query.*;
 import com.redhat.lightblue.util.*;
@@ -192,7 +193,19 @@ public abstract class Translator {
             List<String> resultColumns = new ArrayList<>();
             processProjection(p,resultColumns);
             if(resultColumns.size() == 0){
-                throw Error.get(RDBMSConstants.ERR_NO_PROJECTION, p.toString());
+                if(rdbmsContext.getCRUDOperationName() != LightblueOperators.DELETE) {
+                    throw Error.get(RDBMSConstants.ERR_NO_PROJECTION, p != null ? p.toString() : "Projection is null");
+                } else{
+                    rdbmsContext.getIn();
+                    for (Object o : rdbmsContext.getIn()) {
+                        InOut io = (InOut)o;
+                        String column = fieldToProjectionMap.get(io.getField().toString()).getColumn();
+                        resultColumns.add(column);
+                    }
+                    if(resultColumns.size() == 0){
+                        throw Error.get(RDBMSConstants.ERR_ILL_FORMED_METADATA, "Delete operation need In variables to process");
+                    }
+                }
             }
             lastStmt.setResultColumns(resultColumns);
             fillDefault(lastStmt);
