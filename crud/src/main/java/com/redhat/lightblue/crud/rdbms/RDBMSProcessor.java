@@ -113,15 +113,29 @@ public class RDBMSProcessor {
     }
 
     private static void recursiveMapInputUpdateExpression(RDBMSContext rdbmsContext, UpdateExpression updateExpression) {
-        if(updateExpression instanceof ArrayAddExpression){
-            ArrayAddExpression a = (ArrayAddExpression) updateExpression;
-            rdbmsContext.getInputMappedByField().put(a.getField().toString(), a.getValues());
+        if(updateExpression instanceof UnsetExpression){
+            UnsetExpression unsetExpression = (UnsetExpression) updateExpression;
+            for (Path path : unsetExpression.getFields()) {
+                String key = path.toString();
+                rdbmsContext.getInVar().put("", String.class, Column.createTemp(key, String.class.getCanonicalName()));
+            }
         } else if(updateExpression instanceof SetExpression){
             SetExpression s = (SetExpression) updateExpression;
             for (FieldAndRValue fieldAndRValue : s.getFields()) {
-                rdbmsContext.getInputMappedByField().put(fieldAndRValue.getField().toString(), fieldAndRValue.getRValue().getValue().toString());
+                String key = fieldAndRValue.getField().toString();
+                String value = fieldAndRValue.getRValue().getValue().getValue().toString();
+                rdbmsContext.getInVar().put(value, String.class, Column.createTemp(key, String.class.getCanonicalName()));
             }
-        } else {
+        }
+        /*
+            if(updateExpression instanceof ArrayAddExpression){
+            ArrayAddExpression a = (ArrayAddExpression) updateExpression;
+            rdbmsContext.getInputMappedByField().put(a.getField().toString(), a.getValues());
+            String key = a.getField().toString();
+            List<RValueExpression> value = a.getValues();
+         */
+
+        else {
             throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_SUP_OPERATOR, "The Update query is not supported");
         }
     }
