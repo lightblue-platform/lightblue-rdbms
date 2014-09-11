@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.common.rdbms.RDBMSDataStore;
 import com.redhat.lightblue.crud.DocCtx;
 import com.redhat.lightblue.metadata.rdbms.converter.DynVar;
@@ -36,8 +37,9 @@ import com.redhat.lightblue.metadata.rdbms.enums.LightblueOperators;
 import com.redhat.lightblue.metadata.rdbms.enums.LoopOperators;
 import com.redhat.lightblue.metadata.rdbms.model.*;
 import com.redhat.lightblue.metadata.rdbms.util.Column;
-import com.redhat.lightblue.util.JsonDoc;
-import com.redhat.lightblue.util.Path;
+import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
+import com.redhat.lightblue.query.*;
+import com.redhat.lightblue.util.*;
 
 import javax.sql.DataSource;
 import java.util.*;
@@ -95,6 +97,9 @@ public class RDBMSProcessor {
                 }
             }
         }
+        if(rdbmsContext.getUpdateExpression() != null) {
+            recursiveMapInputUpdateExpression(rdbmsContext, rdbmsContext.getUpdateExpression());
+        }
 
         // Process the defined expressions
         recursiveExpressionCall(rdbmsContext, op, op.getExpressionList());
@@ -107,6 +112,20 @@ public class RDBMSProcessor {
         }
     }
 
+    private static void recursiveMapInputUpdateExpression(RDBMSContext rdbmsContext, UpdateExpression updateExpression) {
+        if(updateExpression instanceof ArrayAddExpression){
+            ArrayAddExpression a = (ArrayAddExpression) updateExpression;
+            rdbmsContext.getInputMappedByField().put(a.getField().toString(), a.getValues());
+        } else if(updateExpression instanceof SetExpression){
+            SetExpression s = (SetExpression) updateExpression;
+            for (FieldAndRValue fieldAndRValue : s.getFields()) {
+                rdbmsContext.getInputMappedByField().put(fieldAndRValue.getField().toString(), fieldAndRValue.getRValue().getValue().toString());
+            }
+        } else {
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_SUP_OPERATOR, "The Update query is not supported");
+        }
+    }
+
     private static void mapInputWithBinding(RDBMSContext rdbmsContext) {
         List<InOut> in = rdbmsContext.getIn();
         DynVar inVar = rdbmsContext.getInVar();
@@ -114,7 +133,7 @@ public class RDBMSProcessor {
         rdbmsContext.setInputMappedByColumn(new HashMap<String, List>());
         for (InOut i : in) {
             rdbmsContext.getInputMappedByColumn().put(i.getColumn(),inVar.getValues(i.getColumn()));
-            rdbmsContext.getInputMappedByField().put(i.getField(), inVar.getValues(i.getField().toString()));
+            rdbmsContext.getInputMappedByField().put(i.getField(), inVar.getValues(i.getColumn()));
         }
     }
 

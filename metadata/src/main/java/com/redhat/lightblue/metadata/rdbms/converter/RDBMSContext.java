@@ -28,6 +28,8 @@ import com.redhat.lightblue.metadata.rdbms.model.RDBMS;
 import com.redhat.lightblue.query.Projection;
 import com.redhat.lightblue.query.QueryExpression;
 import com.redhat.lightblue.query.Sort;
+import com.redhat.lightblue.query.UpdateExpression;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -71,6 +73,7 @@ public class RDBMSContext<T> {
     private String CRUDOperationName;
     private CRUDOperationContext crudOperationContext;
     private String currentLoopOperator;
+    private UpdateExpression updateExpression;
 
     public RDBMSContext() {
         this.fromToQueryRange =  new Range();
@@ -329,5 +332,13 @@ public class RDBMSContext<T> {
 
     public void setFromToQueryRange(Range fromToQueryRange) {
         this.fromToQueryRange = fromToQueryRange;
+    }
+
+    public void setUpdateExpression(UpdateExpression updateExpression) {
+        this.updateExpression = updateExpression;
+    }
+
+    public UpdateExpression getUpdateExpression() {
+        return updateExpression;
     }
 }
