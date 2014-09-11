@@ -72,9 +72,15 @@ public class RDBMSProcessor {
             op.getBindings().setInList(new ArrayList<InOut>());
             op.getBindings().setOutList(new ArrayList<InOut>());
             rdbmsContext.getRdbms().setOperationByName(crudOperationName, op);
+            op.getBindings().setInList(rdbmsContext.getIn());
+            op.getBindings().setOutList(rdbmsContext.getOut());
         }
-        op.getBindings().setInList(rdbmsContext.getIn());
-        op.getBindings().setOutList(rdbmsContext.getOut());
+        if(op.getBindings().getInList() != null) {
+            rdbmsContext.setIn(op.getBindings().getInList());
+        }
+        if(op.getBindings().getOutList() != null) {
+            rdbmsContext.setOut(op.getBindings().getOutList());
+        }
 
         if(rdbmsContext.getQueryExpression() != null) {
             // Dynamically create the first SQL statements to generate the input for the next defined expressions
