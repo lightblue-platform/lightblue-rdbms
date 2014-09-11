@@ -126,12 +126,12 @@ public class RDBMSCRUDController implements CRUDController {
     @Override
     public CRUDUpdateResponse update(CRUDOperationContext crudOperationContext,
                                      QueryExpression queryExpression,
-                                     UpdateExpression update,
+                                     UpdateExpression updateExpression,
                                      Projection projection) {
         if (queryExpression == null) {
             throw new IllegalArgumentException("No queryExpression informed");
         }
-        LOGGER.debug("update start: q:{} u:{} p:{}", queryExpression, update, projection);
+        LOGGER.debug("update start: q:{} u:{} p:{}", queryExpression, updateExpression, projection);
         Error.push("");
 
         CRUDUpdateResponse response = new CRUDUpdateResponse();
@@ -141,7 +141,7 @@ public class RDBMSCRUDController implements CRUDController {
             if (md.getAccess().getFind().hasAccess(crudOperationContext.getCallerRoles())) {
                 FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, crudOperationContext.getCallerRoles());
                 RDBMSContext rdbmsContext = new RDBMSContext(null,null,queryExpression,projection,md,nodeFactory,rds,roleEval, crudOperationContext,"update");
-
+                rdbmsContext.setUpdateExpression(updateExpression);
                 RDBMSProcessor.process(rdbmsContext);
 
                 crudOperationContext.getHookManager().queueHooks(crudOperationContext);
