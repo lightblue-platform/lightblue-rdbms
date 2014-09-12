@@ -54,10 +54,10 @@ public class ElseIf implements ComplexConverter {
         T eT = p.newNode();
 
         T iT = p.newNode();
-        p.putObject(eT, "$if", iT);
+        p.putObject(eT, "if", iT);
 
         anIf.convert(p, null, iT);
-        then.convert(p, null, eT); //it already add $then
+        then.convert(p, null, eT); //it already add then
 
         p.addObjectToArray(lastArrayNode, eT);
     }

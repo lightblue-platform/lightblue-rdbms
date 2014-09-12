@@ -94,10 +94,10 @@
                     {
                         "type": "object",
                         "properties": {
-                            "$if": {
+                            "if": {
                                 "$ref": "if.json#/definitions/if"
                             },
-                            "$then": {
+                            "then": {
                                 "oneOf": [
                                     {
                                         "$ref": "#/properties/expressions"
@@ -107,16 +107,16 @@
                                     }
                                 ]
                             },
-                            "$elseIf": {
+                            "elseIf": {
                                 "type": "array",
                                 "minItems": 1,
                                 "items": {
                                     "type": "object",
                                     "properties": {
-                                        "$if": {
+                                        "if": {
                                             "$ref": "if.json#/definitions/if"
                                         },
-                                        "$then": {
+                                        "then": {
                                             "oneOf": [
                                                 {
                                                     "$ref": "#/properties/expressions"
@@ -128,13 +128,13 @@
                                         }
                                     },
                                     "required": [
-                                        "$if",
-                                        "$then"
+                                        "if",
+                                        "then"
                                     ],
                                     "additionalProperties": false
                                 }
                             },
-                            "$else": {
+                            "else": {
                                 "oneOf": [
                                     {
                                         "$ref": "#/properties/expressions"
@@ -146,15 +146,15 @@
                             }
                         },
                         "required": [
-                            "$if",
-                            "$then"
+                            "if",
+                            "then"
                         ],
                         "additionalProperties": false
                     },
                     {
                         "type": "object",
                         "properties": {
-                            "$foreach": {
+                            "foreach": {
                                 "type": "object",
                                 "properties": {
                                     "iterateOverField": {
@@ -173,14 +173,14 @@
                             }
                         },
                         "required": [
-                            "$foreach"
+                            "foreach"
                         ],
                         "additionalProperties": false
                     },
                     {
                         "type": "object",
                         "properties": {
-                            "$for": {
+                            "for": {
                                 "type": "object",
                                 "properties": {
                                     "loopTimes": {
@@ -202,7 +202,7 @@
                             }
                         },
                         "required": [
-                            "$for"
+                            "for"
                         ],
                         "additionalProperties": false
                     }

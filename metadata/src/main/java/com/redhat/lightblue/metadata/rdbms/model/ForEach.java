@@ -47,10 +47,10 @@ public class ForEach extends Expression {
     @Override
     public <T> void convert(MetadataParser<T> p, Object expressionsNode) {
         if (iterateOverField == null || iterateOverField.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No $foreach's iterateOverField informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No foreach's iterateOverField informed");
         }
         if (expressions == null || expressions.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No $foreach's expressions informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No foreach's expressions informed");
         }
         T eT = p.newNode();
         p.putString(eT, "iterateOverField", iterateOverField.toString());
@@ -59,7 +59,7 @@ public class ForEach extends Expression {
             expression.convert(p, o);
         }
         T s = p.newNode();
-        p.putObject(s, "$foreach", eT);
+        p.putObject(s, "foreach", eT);
 
         p.addObjectToArray(expressionsNode, s);
     }

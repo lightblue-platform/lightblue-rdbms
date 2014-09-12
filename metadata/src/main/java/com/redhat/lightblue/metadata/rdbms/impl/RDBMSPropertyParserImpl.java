@@ -157,10 +157,10 @@ public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
         final ArrayList<Expression> result = new ArrayList<>();
         for (T expression : expressionsT) {
             Expression e;
-            T stmt = p.getObjectProperty(expression, "$statement");
-            T forS = p.getObjectProperty(expression, "$for");
-            T foreachS = p.getObjectProperty(expression, "$foreach");
-            T ifthen = p.getObjectProperty(expression, "$if");
+            T stmt = p.getObjectProperty(expression, "statement");
+            T forS = p.getObjectProperty(expression, "for");
+            T foreachS = p.getObjectProperty(expression, "foreach");
+            T ifthen = p.getObjectProperty(expression, "if");
 
             if (stmt != null) {
                 String sql = p.getStringProperty(stmt, "sql");
@@ -168,7 +168,7 @@ public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
                 boolean sqlB = sql == null || sql.isEmpty();
                 boolean typeB = type == null || type.isEmpty();
                 if (sqlB || typeB) {
-                    throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Invalid $statement: No sql or type informed");
+                    throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Invalid statement: No sql or type informed");
                 }
 
                 Statement statement = new Statement();
@@ -184,14 +184,14 @@ public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
                 boolean loopCounterVariableNameB = loopCounterVariableName == null || loopCounterVariableName.isEmpty();
                 boolean expressionsTforSB = expressionsTforS == null || expressionsTforS.isEmpty();
                 if (loopTimesSB || loopCounterVariableNameB || expressionsTforSB) {
-                    throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Invalid $for: No loopTimesS or loopCounterVariableName or expressions informed");
+                    throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Invalid for: No loopTimesS or loopCounterVariableName or expressions informed");
                 }
                 List<Expression> expressions = parseExpressions(p, expressionsTforS);
                 int loopTimes = 0;
                 try {
                     loopTimes = Integer.parseInt(loopTimesS);
                 } catch (NumberFormatException nfe) {
-                    throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Invalid $for: loopTimes is not an integer");
+                    throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Invalid for: loopTimes is not an integer");
                 }
                 For forLoop = new For();
                 forLoop.setLoopTimes(loopTimes);
@@ -205,7 +205,7 @@ public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
                 boolean iterateOverPathB = iterateOverPath == null || iterateOverPath.isEmpty();
                 boolean expressionsTforSB = expressionsTforS == null || expressionsTforS.isEmpty();
                 if (iterateOverPathB || expressionsTforSB) {
-                    throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Invalid $foreach: No iterateOverField or expressions informed");
+                    throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Invalid foreach: No iterateOverField or expressions informed");
                 }
                 List<Expression> expressions = parseExpressions(p, expressionsTforS);
 
@@ -215,16 +215,16 @@ public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
 
                 e = forLoop;
             } else if (ifthen != null) {
-                //$if
+                //if
                 If If = parseIf(p, ifthen);
 
-                //$then
+                //then
                 Then Then = parseThen(p, expression);
 
-                //$elseIf
+                //elseIf
                 List<ElseIf> elseIfList = parseElseIf(p, expression);
 
-                //$else
+                //else
                 Else elseC = parseElse(p, expression);
 
                 Conditional c = new Conditional();
@@ -243,17 +243,17 @@ public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
     }
 
     private List<ElseIf> parseElseIf(MetadataParser<T> p, T expression) {
-        List<T> elseIfs = p.getObjectList(expression, "$elseIf");
+        List<T> elseIfs = p.getObjectList(expression, "elseIf");
 
         if (elseIfs != null && !elseIfs.isEmpty()) {
             List<ElseIf> elseIfList = new ArrayList<>();
             for (T ei : elseIfs) {
-                T eiIfT = p.getObjectProperty(ei, "$if");
-                T eiThenT = p.getObjectProperty(ei, "$then");
+                T eiIfT = p.getObjectProperty(ei, "if");
+                T eiThenT = p.getObjectProperty(ei, "then");
                 boolean ifB = eiIfT == null;
                 boolean thenB = eiThenT == null;
                 if (ifB || thenB) {
-                    throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Invalid $elseIf: No $if or $then informed");
+                    throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Invalid elseIf: No if or then informed");
                 }
                 If eiIf = parseIf(p, eiIfT);
                 Then eiThen = parseThen(p, ei);
@@ -265,7 +265,7 @@ public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
             }
             return elseIfList;
         } else if (elseIfs != null && elseIfs.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Invalid $elseIf: the $elseIf array is empty");
+            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Invalid elseIf: the elseIf array is empty");
         } else {
             return null;
         }
@@ -297,10 +297,10 @@ public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
     }
 
     private Then parseThen(MetadataParser<T> p, T parentThenT) {
-        return parseThenOrElse(p, parentThenT, "$then", new Then());
+        return parseThenOrElse(p, parentThenT, "then", new Then());
     }
 
     private Else parseElse(MetadataParser<T> p, T parentElseT) {
-        return (Else) parseThenOrElse(p, parentElseT, "$else", new Else());
+        return (Else) parseThenOrElse(p, parentElseT, "else", new Else());
     }
 }

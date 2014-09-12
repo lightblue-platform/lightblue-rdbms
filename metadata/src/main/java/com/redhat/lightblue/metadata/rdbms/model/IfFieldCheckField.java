@@ -73,10 +73,10 @@ public class IfFieldCheckField extends If<If, If> {
         p.putString(s, "op", op);
 
         if (lastArrayNode == null) {
-            p.putObject(node, "$fieldCheckField", s);
+            p.putObject(node, "fieldCheckField", s);
         } else {
             T iT = p.newNode();
-            p.putObject(iT, "$fieldCheckField", s);
+            p.putObject(iT, "fieldCheckField", s);
             p.addObjectToArray(lastArrayNode, iT);
         }
     }
@@ -84,20 +84,20 @@ public class IfFieldCheckField extends If<If, If> {
     @Override
     public <T> If parse(MetadataParser<T> p, T ifT) {
         If x = null;
-        T pathpath = p.getObjectProperty(ifT, "$fieldCheckField");
+        T pathpath = p.getObjectProperty(ifT, "fieldCheckField");
         if (pathpath != null) {
             x = new IfFieldCheckField();
             String conditional = p.getStringProperty(pathpath, "op");
             String path1 = p.getStringProperty(pathpath, "field");
             String path2 = p.getStringProperty(pathpath, "rfield");
             if (path1 == null || path1.isEmpty()) {
-                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "$fieldCheckField: field not informed");
+                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "fieldCheckField: field not informed");
             }
             if (path2 == null || path2.isEmpty()) {
-                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "$fieldCheckField: rfield not informed");
+                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "fieldCheckField: rfield not informed");
             }
             if (conditional == null || conditional.isEmpty()) {
-                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "$fieldCheckField: op not informed");
+                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "fieldCheckField: op not informed");
             }
             ((IfFieldCheckField) x).setField(new Path(path1));
             ((IfFieldCheckField) x).setRfield(new Path(path2));

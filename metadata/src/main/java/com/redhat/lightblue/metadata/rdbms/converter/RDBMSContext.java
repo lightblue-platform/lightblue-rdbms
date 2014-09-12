@@ -18,14 +18,23 @@
  */
 package com.redhat.lightblue.metadata.rdbms.converter;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.redhat.lightblue.common.rdbms.RDBMSDataSourceResolver;
+import com.redhat.lightblue.crud.CRUDOperationContext;
+import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
 import com.redhat.lightblue.metadata.EntityMetadata;
+import com.redhat.lightblue.metadata.rdbms.model.InOut;
 import com.redhat.lightblue.metadata.rdbms.model.RDBMS;
 import com.redhat.lightblue.query.Projection;
 import com.redhat.lightblue.query.QueryExpression;
 import com.redhat.lightblue.query.Sort;
+import com.redhat.lightblue.query.UpdateExpression;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
@@ -34,13 +43,13 @@ import javax.sql.DataSource;
  * @param <T> type of object returned in List (resultList)
  */
 public class RDBMSContext<T> {
+    private Range fromToQueryRange;
     private DataSource dataSource;
     private String dataSourceName;
     private Connection connection;
     private PreparedStatement preparedStatement;
     private Boolean resultBoolean;
     private Integer resultInteger;
-    private List<ResultSet> resultSetList;
     private RowMapper<T> rowMapper;
     private List<T> resultList;
     private RDBMS rdbms;
@@ -50,9 +59,40 @@ public class RDBMSContext<T> {
     private QueryExpression queryExpression;
     private Projection projection;
     private Sort sort;
-    private Long from;
-    private Long to;
     private Map<String, Object> temporaryVariable;
+    private List<InOut> in = new ArrayList<>();
+    private List<InOut> out = new ArrayList<>();
+    private DynVar inVar;
+    private DynVar outVar;
+    private boolean initialInput;
+    private HashMap<String, Object> inputMappedByField;
+    private HashMap<String, Object> inputMappedByColumn;
+    private JsonNodeFactory jsonNodeFactory;
+    private com.redhat.lightblue.common.rdbms.RDBMSDataSourceResolver RDBMSDataSourceResolver;
+    private FieldAccessRoleEvaluator fieldAccessRoleEvaluator;
+    private String CRUDOperationName;
+    private CRUDOperationContext crudOperationContext;
+    private String currentLoopOperator;
+    private UpdateExpression updateExpression;
+
+    public RDBMSContext() {
+        this.fromToQueryRange =  new Range();
+        inVar = new DynVar(this);
+        outVar = new DynVar(this);
+    }
+
+    public RDBMSContext(Long from, Long to, QueryExpression queryExpression, Projection projection, EntityMetadata entityMetadata, JsonNodeFactory jsonNodeFactory, com.redhat.lightblue.common.rdbms.RDBMSDataSourceResolver RDBMSDataSourceResolver, FieldAccessRoleEvaluator fieldAccessRoleEvaluator,CRUDOperationContext crudOperationContext, String CRUDOperationName) {
+        this();
+        this.fromToQueryRange =  new Range(from, to);
+        this.queryExpression = queryExpression;
+        this.projection = projection;
+        this.entityMetadata = entityMetadata;
+        this.jsonNodeFactory = jsonNodeFactory;
+        this.RDBMSDataSourceResolver = RDBMSDataSourceResolver;
+        this.fieldAccessRoleEvaluator = fieldAccessRoleEvaluator;
+        this.crudOperationContext = crudOperationContext;
+        this.CRUDOperationName = CRUDOperationName;
+    }
 
     public DataSource getDataSource() {
         return dataSource;
@@ -96,14 +136,6 @@ public class RDBMSContext<T> {
 
     public void setResultInteger(Integer resultInteger) {
         this.resultInteger = resultInteger;
-    }
-
-    public List<ResultSet> getResultSetList() {
-        return resultSetList;
-    }
-
-    public void setResultSetList(List<ResultSet> resultSetList) {
-        this.resultSetList = resultSetList;
     }
 
     public RowMapper<T> getRowMapper() {
@@ -178,22 +210,6 @@ public class RDBMSContext<T> {
         this.sort = sort;
     }
 
-    public Long getFrom() {
-        return from;
-    }
-
-    public void setFrom(Long from) {
-        this.from = from;
-    }
-
-    public Long getTo() {
-        return to;
-    }
-
-    public void setTo(Long to) {
-        this.to = to;
-    }
-
     public Boolean getResultBoolean() {
         return resultBoolean;
     }
@@ -204,5 +220,125 @@ public class RDBMSContext<T> {
 
     public void setTemporaryVariable(Map<String, Object> temporaryVariable) {
         this.temporaryVariable = temporaryVariable;
+    }
+
+    public List<InOut> getIn() {
+        return in;
+    }
+
+    public void setIn(List<InOut> in) {
+        this.in = in;
+    }
+
+    public List<InOut> getOut() {
+        return out;
+    }
+
+    public void setOut(List<InOut> out) {
+        this.out = out;
+    }
+
+    public DynVar getInVar() {
+        return inVar;
+    }
+
+    public void setInVar(DynVar inVar) {
+        this.inVar = inVar;
+    }
+
+    public DynVar getOutVar() {
+        return outVar;
+    }
+
+    public void setOutVar(DynVar outVar) {
+        this.outVar = outVar;
+    }
+
+    public void setInitialInput(boolean initialInput) {
+        this.initialInput = initialInput;
+    }
+
+    public boolean isInitialInput() {
+        return initialInput;
+    }
+
+    public void setInputMappedByField(HashMap<String, Object> inputMappedByField) {
+        this.inputMappedByField = inputMappedByField;
+    }
+
+    public HashMap<String, Object> getInputMappedByField() {
+        return inputMappedByField;
+    }
+
+    public void setInputMappedByColumn(HashMap<String, Object> inputMappedByColumn) {
+        this.inputMappedByColumn = inputMappedByColumn;
+    }
+
+    public HashMap<String, Object> getInputMappedByColumn() {
+        return inputMappedByColumn;
+    }
+
+    public void setJsonNodeFactory(JsonNodeFactory jsonNodeFactory) {
+        this.jsonNodeFactory = jsonNodeFactory;
+    }
+
+    public JsonNodeFactory getJsonNodeFactory() {
+        return jsonNodeFactory;
+    }
+
+    public void setRDBMSDataSourceResolver(RDBMSDataSourceResolver RDBMSDataSourceResolver) {
+        this.RDBMSDataSourceResolver = RDBMSDataSourceResolver;
+    }
+
+    public RDBMSDataSourceResolver getRDBMSDataSourceResolver() {
+        return RDBMSDataSourceResolver;
+    }
+
+    public void setFieldAccessRoleEvaluator(FieldAccessRoleEvaluator fieldAccessRoleEvaluator) {
+        this.fieldAccessRoleEvaluator = fieldAccessRoleEvaluator;
+    }
+
+    public FieldAccessRoleEvaluator getFieldAccessRoleEvaluator() {
+        return fieldAccessRoleEvaluator;
+    }
+
+    public void setCRUDOperationName(String CRUDOperationName) {
+        this.CRUDOperationName = CRUDOperationName;
+    }
+
+    public String getCRUDOperationName() {
+        return CRUDOperationName;
+    }
+
+    public void setCrudOperationContext(CRUDOperationContext crudOperationContext) {
+        this.crudOperationContext = crudOperationContext;
+    }
+
+    public CRUDOperationContext getCrudOperationContext() {
+        return crudOperationContext;
+    }
+
+    public void setCurrentLoopOperator(String currentLoopOperator) {
+        this.currentLoopOperator = currentLoopOperator;
+    }
+
+    public String getCurrentLoopOperator() {
+        return currentLoopOperator;
+    }
+
+    public Range getFromToQueryRange() {
+        return fromToQueryRange;
+    }
+
+    public void setFromToQueryRange(Range fromToQueryRange) {
+        this.fromToQueryRange = fromToQueryRange;
+    }
+
+    public void setUpdateExpression(UpdateExpression updateExpression) {
+        this.updateExpression = updateExpression;
+    }
+
+    public UpdateExpression getUpdateExpression() {
+        return updateExpression;
     }
 }

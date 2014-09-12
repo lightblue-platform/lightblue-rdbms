@@ -24,10 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,9 +32,15 @@ public class RDBMSUtilsMetadata {
     private static final Logger LOGGER = LoggerFactory.getLogger(RDBMSUtilsMetadata.class);
 
     public static DataSource getDataSource(RDBMSContext rDBMSContext) {
-        DataSource dataSource = com.redhat.lightblue.common.rdbms.RDBMSUtils.getDataSource(rDBMSContext.getDataSourceName());
-        rDBMSContext.setDataSource(dataSource);
-        return dataSource;
+        if(rDBMSContext.getDataSource() != null){
+            return rDBMSContext.getDataSource();
+        }
+        if(rDBMSContext.getDataSourceName() != null && !rDBMSContext.getDataSourceName().isEmpty()) {
+            DataSource dataSource = com.redhat.lightblue.common.rdbms.RDBMSUtils.getDataSource(rDBMSContext.getDataSourceName());
+            rDBMSContext.setDataSource(dataSource);
+            return dataSource;
+        }
+        throw new IllegalStateException("No datasource informed!");
     }
 
     public static Connection getConnection(RDBMSContext context) {
@@ -108,7 +111,11 @@ public class RDBMSUtilsMetadata {
         PreparedStatement ps = null;
         try {
             NamedParameterStatement nps = new NamedParameterStatement(context.getConnection(), context.getSql());
-            //ps = .prepareStatement();
+            DynVar dynVar = context.getInVar();
+            processDynVar(context,nps,dynVar);
+            dynVar = context.getOutVar();
+            processDynVar(context,nps,dynVar);
+            ps = nps.getPrepareStatement();
         } catch (SQLException e) {
             // throw new Error (preserves current error context)
             LOGGER.error(e.getMessage(), e);
@@ -121,49 +128,58 @@ public class RDBMSUtilsMetadata {
         LOGGER.debug("getStatement() stop");
         return ps;
     }
+    enum Classes {
+        Boolean,Short,Integer,Long,Double,String,Date,Time ;
 
-    public static int executeUpdate(RDBMSContext context) {
-        if (context.getPreparedStatement() == null) {
-            throw new IllegalArgumentException("No statement supplied");
-        }
-        Integer r = null;
-        LOGGER.debug("executeUpdate() start");
-        Error.push("RDBMSUtils");
-        Error.push("executeUpdate");
+    }
+    public static void processDynVar(RDBMSContext context,NamedParameterStatement nps,DynVar dynVar) {
+        //only supports one non-null value now
         try {
-            r = context.getPreparedStatement().executeUpdate();
-        } catch (SQLException e) {
-            // throw new Error (preserves current error context)
-            LOGGER.error(e.getMessage(), e);
-            throw Error.get(RDBMSConstants.ERR_EXECUTE_UPDATE_FAILED, e.getMessage());
-        } finally {
-            Error.pop();
-            Error.pop();
-        }
-        context.setResultInteger(r);
-        context.setResultSetList(new ArrayList());
-
-        ResultSet rs;
-        try {
-            rs = context.getPreparedStatement().getResultSet();
-            if (rs != null) {
-                context.getResultSetList().add(rs);
-                try {
-                    while (context.getPreparedStatement().getMoreResults()) {
-                        context.getResultSetList().add(context.getPreparedStatement().getResultSet());
+            for(String key : dynVar.getKeys()){
+                List values = dynVar.getValues(key);
+                if(values != null && values.size() > 0){
+                    Object o = values.get(0);
+                    if(o == null){
+                        continue;
                     }
-                } catch (SQLException ex) {
-                    LOGGER.error(ex.getMessage(), ex);
+                    Class clazz = dynVar.getFirstClassFromKey(key);
+                    Classes z = Classes.valueOf(clazz.getSimpleName());
+                    switch (z) {
+                        case Boolean:
+                            nps.setBoolean(key, (Boolean) o);
+                            break;
+                        case Short:
+                            nps.setInt(key, (Short) o);
+                            break;
+                        case Integer:
+                            nps.setInt(key, (Integer) o);
+                            break;
+                        case Long:
+                            nps.setLong(key, (Long)o);
+                            break;
+                        case Double:
+                            nps.setDouble(key, (Double) o);
+                            break;
+                        case String:
+                            nps.setString(key, o.toString());
+                            break;
+                        case Date:
+                            nps.setTimestamp(key, new Timestamp(((Date)o).getTime()));
+                            break;
+                        case Time:
+                            nps.setTime(key, (Time) o);
+                            break;
+                        default:
+                            throw new IllegalStateException("State not implemented! clazz:"+clazz+" z:"+z+" clazz.getSimpleName():"+clazz.getSimpleName());
+                    }
+                    if("byte[]".equals(clazz.getSimpleName())){
+                        nps.setBytes(key, (byte[]) o);
+                    }
                 }
-
             }
-        } catch (SQLException ex) {
-            LOGGER.error(ex.getMessage(), ex);
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
         }
-
-        LOGGER.debug("executeUpdate() stop");
-        return r;
-
     }
 
     public static void close(RDBMSContext context) {
@@ -185,9 +201,6 @@ public class RDBMSUtilsMetadata {
     }
 
     public static <T> List<T> buildAllMappedList(RDBMSContext<T> context) {
-        if (context.getPreparedStatement() == null) {
-            throw new IllegalArgumentException("No statement supplied");
-        }
         if (context.getRowMapper() == null) {
             throw new IllegalArgumentException("No rowMapper supplied");
         }
@@ -195,24 +208,84 @@ public class RDBMSUtilsMetadata {
         getDataSource(context);
         getConnection(context);
         getStatement(context);
+        if (context.getPreparedStatement() == null) {
+            throw new IllegalArgumentException("No statement supplied");
+        }
         List<T> list = new ArrayList<>();
         context.setResultList(list);
-        executeUpdate(context);
-        List<ResultSet> resultSetList = context.getResultSetList();
-        for (ResultSet rs : resultSetList) {
-            try {
+
+        ResultSet rs;
+        try {
+            context.getPreparedStatement().execute();
+            rs = context.getPreparedStatement().getResultSet();
+            if (rs != null) {
                 while (rs.next()) {
                     T o = context.getRowMapper().map(rs);
                     list.add(o);
                 }
-                rs.close();
-            } catch (SQLException ex) {
-                LOGGER.error(ex.getMessage(), ex);
+                while (context.getPreparedStatement().getMoreResults()) {
+                    //getMoreResults():  implicitly closes any current ResultSet object
+                    while (rs.next()) {
+                        T o = context.getRowMapper().map(rs);
+                        list.add(o);
+                    }
+                }
             }
+        } catch (SQLException ex) {
+            LOGGER.error(ex.getMessage(), ex);
+            throw new IllegalStateException(ex);
         }
+
         Error.pop();
         close(context);
         return list;
     }
 
+    public static <T> List<T> buildAllMappedList(RDBMSContext<T> context, List<SelectStmt> inputStmt) {
+        if (inputStmt == null || inputStmt.isEmpty()) {
+            throw new IllegalArgumentException("No statement supplied");
+        }
+        if (context.getRowMapper() == null) {
+            throw new IllegalArgumentException("No rowMapper supplied");
+        }
+        if (inputStmt == null) {
+            throw new IllegalArgumentException("No inputStmt supplied");
+        }
+        Error.push("buildMappedList");
+        getDataSource(context);
+        getConnection(context);
+
+        List<T> list = new ArrayList<>();
+        context.setResultList(list);
+        ResultSet rs;
+        for (SelectStmt s : inputStmt){
+            try {
+                PreparedStatement preparedStatement = context.getConnection().prepareStatement(s.generateStatement());
+                context.setPreparedStatement(preparedStatement);
+
+                context.getPreparedStatement().execute();
+                rs = context.getPreparedStatement().getResultSet();
+                if (rs != null) {
+                    while (rs.next()) {
+                        T o = context.getRowMapper().map(rs);
+                        list.add(o);
+                    }
+                    while (context.getPreparedStatement().getMoreResults()) {
+                        //getMoreResults():  implicitly closes any current ResultSet object
+                        while (rs.next()) {
+                            T o = context.getRowMapper().map(rs);
+                            list.add(o);
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                LOGGER.error(e.getMessage(), e);
+                throw new IllegalStateException(e);
+            }
+        }
+
+        Error.pop();
+        close(context);
+        return list;
+    }
 }
