@@ -28,7 +28,7 @@
     <artifactId>rdbms-metadata</artifactId>
     <packaging>jar</packaging>
     <version>0.9.1-SNAPSHOT</version>
-    <name>lightblue: ${project.groupId}|${project.artifactId}</name>
+    <name>lightblue-rdbms: ${project.groupId}|${project.artifactId}</name>
     <dependencies>
         <dependency>
             <groupId>com.redhat.lightblue.rdbms</groupId>

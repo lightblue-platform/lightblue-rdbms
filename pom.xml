@@ -197,6 +197,7 @@
         <module>hystrix</module>
         <module>config</module>
         <module>common</module>
+        <module>tools</module>
     </modules>
     <properties>
         <sonar.exclusions>**/*Test.java,**/*Exception.java</sonar.exclusions>
