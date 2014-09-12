@@ -15,7 +15,7 @@
 
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+*/
 package com.redhat.lightblue.metadata.rdbms.model;
 
 import com.redhat.lightblue.metadata.parser.MetadataParser;
@@ -141,6 +141,27 @@ public class RDBMS implements RootConverter {
             default:
                 throw new IllegalArgumentException("Not valid operation -> " + operation);
         }
-
     }
+    public void setOperationByName(String operation, Operation o) {
+        switch (operation) {
+            case LightblueOperators.DELETE:
+                delete = o;
+                return;
+            case LightblueOperators.FETCH:
+                fetch = o;
+                return;
+            case LightblueOperators.INSERT:
+                insert = o;
+                return;
+            case LightblueOperators.SAVE:
+                save = o;
+                return;
+            case LightblueOperators.UPDATE:
+                update = o;
+                return;
+            default:
+                throw new IllegalArgumentException("Not valid operation -> " + operation);
+        }
+    }
+
 }

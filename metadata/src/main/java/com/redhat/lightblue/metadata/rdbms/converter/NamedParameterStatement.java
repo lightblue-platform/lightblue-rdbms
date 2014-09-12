@@ -115,7 +115,8 @@ public class NamedParameterStatement {
     private int[] getIndexes(String name) {
         int[] indexes = indexMap.get(name);
         if (indexes == null) {
-            throw new IllegalStateException("Parameter not found: " + name);
+            //throw new IllegalStateException("Parameter not found: " + name);
+            return new int[]{};// As the parameters doesnt specify the Statement it will belong, this will make possible to try indexes that weren't be used in this Statement
         }
         return indexes;
     }
@@ -155,6 +156,34 @@ public class NamedParameterStatement {
         }
     }
 
+    public void setTime(String name, Time value) throws SQLException {
+        int[] indexes = getIndexes(name);
+        for (int index : indexes) {
+            statement.setTime(index, value);
+        }
+    }
+
+    public void setDouble(String name, double value) throws SQLException {
+        int[] indexes = getIndexes(name);
+        for (int index : indexes) {
+            statement.setDouble(index, value);
+        }
+    }
+
+    public void setBoolean(String name, boolean value) throws SQLException {
+        int[] indexes = getIndexes(name);
+        for (int index : indexes) {
+            statement.setBoolean(index, value);
+        }
+    }
+
+    public void setBytes(String name, byte[] value) throws SQLException {
+        int[] indexes = getIndexes(name);
+        for (int index : indexes) {
+            statement.setBytes(index, value);
+        }
+    }
+
     public boolean execute() throws SQLException {
         return statement.execute();
     }
@@ -170,4 +199,9 @@ public class NamedParameterStatement {
     public void close() throws SQLException {
         statement.close();
     }
+
+    public PreparedStatement getPrepareStatement(){
+        return statement;
+    }
+
 }

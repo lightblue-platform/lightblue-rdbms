@@ -61,7 +61,7 @@ public class Statement extends Expression {
         p.putString(eT, "type", type);
 
         T s = p.newNode();
-        p.putObject(s, "$statement", eT);
+        p.putObject(s, "statement", eT);
 
         p.addObjectToArray(expressionsNode, s);
     }

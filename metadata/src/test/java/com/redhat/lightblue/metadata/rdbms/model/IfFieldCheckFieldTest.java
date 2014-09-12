@@ -55,12 +55,12 @@ public class IfFieldCheckFieldTest {
 
     @Test
     public void testGetSetOp() {
-        String expResult = "$lt";
+        String expResult = "lt";
         IfFieldCheckField instance = new IfFieldCheckField();
         instance.setOp(expResult);
         String result = instance.getOp();
         assertEquals(expResult, result);
-        expResult = "$eq";
+        expResult = "eq";
         instance.setOp(expResult);
         result = instance.getOp();
         assertEquals(expResult, result);

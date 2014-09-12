@@ -27,22 +27,26 @@ import java.util.List;
  * @author lcestari
  */
 public class SelectStmt {
-    private String distic;
+    private boolean distinct;
     private List<String> resultColumns = new ArrayList<>();
     private List<String> fromTables = new ArrayList<>();
     private LinkedList<String> whereConditionals = new LinkedList<>();
     private List<String> groupBy = new ArrayList<>(); // TODO Future implementation
     private List<String> having = new ArrayList<>(); // TODO Future implementation
     private List<String> orderBy = new ArrayList<>();
-    private Integer limit;
-    private Integer offset;
+    private Range range;
+    private Translator t;
 
-    public String getDistic() {
-        return distic;
+    public SelectStmt(Translator t) {
+        this.t = t;
     }
 
-    public void setDistic(String distic) {
-        this.distic = distic;
+    public boolean getDistinct() {
+        return distinct;
+    }
+
+    public void setDistinct(boolean distinct) {
+        this.distinct = distinct;
     }
 
     public List<String> getResultColumns() {
@@ -93,19 +97,15 @@ public class SelectStmt {
         this.orderBy = orderBy;
     }
 
-    public Integer getLimit() {
-        return limit;
+    public String generateStatement(){
+        return t.generateStatement(this);
     }
 
-    public void setLimit(Integer limit) {
-        this.limit = limit;
+    public Range getRange() {
+        return range;
     }
 
-    public Integer getOffset() {
-        return offset;
-    }
-
-    public void setOffset(Integer offset) {
-        this.offset = offset;
+    public void setRange(Range range) {
+        this.range = range;
     }
 }

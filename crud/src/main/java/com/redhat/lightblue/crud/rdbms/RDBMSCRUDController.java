@@ -18,6 +18,7 @@
  */
 package com.redhat.lightblue.crud.rdbms;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.rdbms.converter.RDBMSContext;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.redhat.lightblue.common.rdbms.RDBMSDataSourceResolver;
@@ -57,12 +58,31 @@ public class RDBMSCRUDController implements CRUDController {
     }
 
     @Override
-    public CRUDInsertionResponse insert(CRUDOperationContext ctx, Projection projection) {
+    public CRUDInsertionResponse insert(CRUDOperationContext crudOperationContext, Projection projection) {
         LOGGER.debug("insert() start");
         Error.push("insert() start");
-
+        //crudOperationContext.getDocuments(); // input? or maybe the projection mapping the values to be processed
         CRUDInsertionResponse response = new CRUDInsertionResponse();
         int n = 0;
+
+        try {
+            EntityMetadata md = crudOperationContext.getEntityMetadata(crudOperationContext.getEntityName());
+            if (md.getAccess().getFind().hasAccess(crudOperationContext.getCallerRoles())) {
+                FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, crudOperationContext.getCallerRoles());
+                RDBMSContext rdbmsContext = new RDBMSContext(null,null,null,projection,md,nodeFactory,rds,roleEval, crudOperationContext,"insert");
+
+                RDBMSProcessor.process(rdbmsContext);
+
+                crudOperationContext.getHookManager().queueHooks(crudOperationContext);
+
+                n= rdbmsContext.getResultInteger() == null? 0 : rdbmsContext.getResultInteger() ;
+            } else {
+                crudOperationContext.addError(Error.get(RDBMSConstants.ERR_NO_ACCESS, "find:" + crudOperationContext.getEntityName()));
+            }
+        } finally {
+            Error.pop();
+        }
+
         response.setNumInserted(n);
 
         Error.pop();
@@ -71,12 +91,31 @@ public class RDBMSCRUDController implements CRUDController {
     }
 
     @Override
-    public CRUDSaveResponse save(CRUDOperationContext ctx, boolean upsert, Projection projection) {
+    public CRUDSaveResponse save(CRUDOperationContext crudOperationContext, boolean upsert, Projection projection) {
         LOGGER.debug("save() start");
         Error.push("");
 
         CRUDSaveResponse response = new CRUDSaveResponse();
         int n = 0;
+
+        try {
+            EntityMetadata md = crudOperationContext.getEntityMetadata(crudOperationContext.getEntityName());
+            if (md.getAccess().getFind().hasAccess(crudOperationContext.getCallerRoles())) {
+                FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, crudOperationContext.getCallerRoles());
+                RDBMSContext rdbmsContext = new RDBMSContext(null,null,null,projection,md,nodeFactory,rds,roleEval, crudOperationContext,"save");
+
+                RDBMSProcessor.process(rdbmsContext);
+
+                crudOperationContext.getHookManager().queueHooks(crudOperationContext);
+
+                n= rdbmsContext.getResultInteger();
+            } else {
+                crudOperationContext.addError(Error.get(RDBMSConstants.ERR_NO_ACCESS, "find:" + crudOperationContext.getEntityName()));
+            }
+        } finally {
+            Error.pop();
+        }
+
         response.setNumSaved(n);
 
         Error.pop();
@@ -85,17 +124,33 @@ public class RDBMSCRUDController implements CRUDController {
     }
 
     @Override
-    public CRUDUpdateResponse update(CRUDOperationContext ctx,
-                                     QueryExpression query,
-                                     UpdateExpression update,
+    public CRUDUpdateResponse update(CRUDOperationContext crudOperationContext,
+                                     QueryExpression queryExpression,
+                                     UpdateExpression updateExpression,
                                      Projection projection) {
-        if (query == null) {
-            throw new IllegalArgumentException("No query informed");
+        if (queryExpression == null) {
+            throw new IllegalArgumentException("No queryExpression informed");
         }
-        LOGGER.debug("update start: q:{} u:{} p:{}", query, update, projection);
+        LOGGER.debug("update start: q:{} u:{} p:{}", queryExpression, updateExpression, projection);
         Error.push("");
 
         CRUDUpdateResponse response = new CRUDUpdateResponse();
+
+        try {
+            EntityMetadata md = crudOperationContext.getEntityMetadata(crudOperationContext.getEntityName());
+            if (md.getAccess().getFind().hasAccess(crudOperationContext.getCallerRoles())) {
+                FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, crudOperationContext.getCallerRoles());
+                RDBMSContext rdbmsContext = new RDBMSContext(null,null,queryExpression,projection,md,nodeFactory,rds,roleEval, crudOperationContext,"update");
+                rdbmsContext.setUpdateExpression(updateExpression);
+                RDBMSProcessor.process(rdbmsContext);
+
+                crudOperationContext.getHookManager().queueHooks(crudOperationContext);
+            } else {
+                crudOperationContext.addError(Error.get(RDBMSConstants.ERR_NO_ACCESS, "find:" + crudOperationContext.getEntityName()));
+            }
+        } finally {
+            Error.pop();
+        }
 
         Error.pop();
         LOGGER.debug("update end: updated: {}, failed: {}", response.getNumUpdated(), response.getNumFailed());
@@ -103,15 +158,31 @@ public class RDBMSCRUDController implements CRUDController {
     }
 
     @Override
-    public CRUDDeleteResponse delete(CRUDOperationContext ctx,
-                                     QueryExpression query) {
-        if (query == null) {
-            throw new IllegalArgumentException("No query informed");
+    public CRUDDeleteResponse delete(CRUDOperationContext crudOperationContext,
+                                     QueryExpression queryExpression) {
+        if (queryExpression == null) {
+            throw new IllegalArgumentException("No queryExpression informed");
         }
-        LOGGER.debug("delete start: q:{}", query);
+        LOGGER.debug("delete start: q:{}", queryExpression);
         Error.push("");
 
         CRUDDeleteResponse response = new CRUDDeleteResponse();
+
+        try {
+            EntityMetadata md = crudOperationContext.getEntityMetadata(crudOperationContext.getEntityName());
+            if (md.getAccess().getFind().hasAccess(crudOperationContext.getCallerRoles())) {
+                FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, crudOperationContext.getCallerRoles());
+                RDBMSContext rdbmsContext = new RDBMSContext(null,null,queryExpression,null,md,nodeFactory,rds,roleEval, crudOperationContext,"delete");
+
+                RDBMSProcessor.process(rdbmsContext);
+
+                crudOperationContext.getHookManager().queueHooks(crudOperationContext);
+            } else {
+                crudOperationContext.addError(Error.get(RDBMSConstants.ERR_NO_ACCESS, "find:" + crudOperationContext.getEntityName()));
+            }
+        } finally {
+            Error.pop();
+        }
 
         Error.pop();
         LOGGER.debug("delete end: deleted: {}}", response.getNumDeleted());
@@ -139,22 +210,13 @@ public class RDBMSCRUDController implements CRUDController {
             EntityMetadata md = crudOperationContext.getEntityMetadata(crudOperationContext.getEntityName());
             if (md.getAccess().getFind().hasAccess(crudOperationContext.getCallerRoles())) {
                 FieldAccessRoleEvaluator roleEval = new FieldAccessRoleEvaluator(md, crudOperationContext.getCallerRoles());
-                RDBMSContext rdbmsContext = new RDBMSContext();
-                RDBMS rdbms = (RDBMS) md.getEntitySchema().getProperties().get("rdbms");
-                if (rdbms == null) {
-                    throw new IllegalStateException("Configured to use RDBMS but no RDBMS definition was found for the entity");
-                }
-                rdbmsContext.setRdbms(rdbms);
-                RDBMSDataStore d = (RDBMSDataStore) md.getDataStore();
-                DataSource ds = rds.get(d);
-                rdbmsContext.setDataSource(ds);
-                rdbmsContext.setRowMapper(new VariableUpdateRowMapper(rdbmsContext));
-                rdbmsContext.setEntityMetadata(md);
-                RDBMSProcessor.process(crudOperationContext, rdbmsContext, "find");
+                RDBMSContext rdbmsContext = new RDBMSContext(from,to,queryExpression,projection,md,nodeFactory,rds,roleEval, crudOperationContext,"find");
+
+                RDBMSProcessor.process(rdbmsContext);
 
                 crudOperationContext.getHookManager().queueHooks(crudOperationContext);
             } else {
-                crudOperationContext.addError(Error.get("No access", "find:" + crudOperationContext.getEntityName()));
+                crudOperationContext.addError(Error.get(RDBMSConstants.ERR_NO_ACCESS, "find:" + crudOperationContext.getEntityName()));
             }
         } finally {
             Error.pop();
