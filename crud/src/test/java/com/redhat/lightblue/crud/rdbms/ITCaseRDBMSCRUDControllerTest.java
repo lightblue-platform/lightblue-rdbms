@@ -16,11 +16,34 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.redhat.lightblue.metadata.rdbms.model;
+package com.redhat.lightblue.crud.rdbms;
 
-public class Else extends Then {
-    @Override
-    public String getName() {
-        return "else";
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+
+
+public class ITCaseRDBMSCRUDControllerTest {
+
+    public static DataSource dsMock = null;
+    public static Connection cMock = null;
+    public static String statement = null;
+    public static PreparedStatement psMock = null;
+    RDBMSCRUDController cut = null; //class under test
+
+    @Before
+    public void setUp() throws Exception {
+        cut = new RDBMSCRUDController(null);
+
     }
+
+    @Test
+    public void testInsert() throws Exception {
+
+    }
+
 }

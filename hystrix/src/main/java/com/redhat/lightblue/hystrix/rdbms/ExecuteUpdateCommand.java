@@ -70,10 +70,10 @@ public class ExecuteUpdateCommand<T> extends HystrixCommand<Void> {
     @Override
     protected Void run() {
         try {
-            if (this.inputStmt == null) {
+            if (inputStmt == null) {
                 RDBMSUtilsMetadata.buildAllMappedList(rdbmsContext);
             } else {
-                RDBMSUtilsMetadata.executeUpdate(rdbmsContext);//TODO
+                RDBMSUtilsMetadata.buildAllMappedList(rdbmsContext,inputStmt);
             }
         } catch (RuntimeException x) {
             throw new HystrixBadRequestException("in " + getClass().getName(), x);

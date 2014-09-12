@@ -24,10 +24,19 @@ import java.util.Arrays;
 import java.util.Set;
 
 public class OpOperators {
+    public static final String EQ = "eq";
+    public static final String NEQ = "neq";
+    public static final String LT = "lt";
+    public static final String GT = "gt";
+    public static final String LTE = "lte";
+    public static final String GTE = "gte";
+    public static final String IN = "in";
+    public static final String NIN = "nin";
+
     private static final com.redhat.lightblue.metadata.Enum singleton = new Enum("conditionals");
 
     static {
-        singleton.setValues(Arrays.asList("$eq", "$neq", "$lt", " $gt", "$lte", "$gte", "$in", "$nin"));
+        singleton.setValues(Arrays.asList(EQ, NEQ, LT, GT, LTE, GTE, IN, NIN));
     }
 
     public static Set<String> getValues() {

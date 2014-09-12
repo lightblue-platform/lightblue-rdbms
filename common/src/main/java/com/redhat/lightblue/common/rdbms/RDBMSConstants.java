@@ -24,13 +24,21 @@ package com.redhat.lightblue.common.rdbms;
  */
 public final class RDBMSConstants {
 
-    public static final String ERR_DATASOURCE_NOT_FOUND = "rdbms-util:DatasourceNotFound";
+    public static final String ERR_DATASOURCE_NOT_FOUND = "rdbms:DatasourceNotFound";
     public static final String ERR_GET_CONNECTION_FAILED = "rdbms-util:GetConnectionFailed";
-    public static final String ERR_GET_STATEMENT_FAILED = "rdbms-util:GetStatementFailed";
-    public static final String ERR_EXECUTE_QUERY_FAILED = "rdbms-util:ExecuteQueryFailed";
-    public static final String ERR_EXECUTE_UPDATE_FAILED = "rdbms-util:ExecuteUpdateFailed";
-    public static final String ERR_BUILD_RESULT_FAILED = "rdbms-util:BuildResultFailed";
-    public static final String ERR_ILL_FORMED_METADATA = "rdbms-metadata:IllFormedMetadata";
+    public static final String ERR_GET_STATEMENT_FAILED = "rdbms:GetStatementFailed";
+    public static final String ERR_EXECUTE_QUERY_FAILED = "rdbms:ExecuteQueryFailed";
+    public static final String ERR_EXECUTE_UPDATE_FAILED = "rdbms:ExecuteUpdateFailed";
+    public static final String ERR_BUILD_RESULT_FAILED = "rdbms:BuildResultFailed";
+    public static final String ERR_ILL_FORMED_METADATA = "rdbms:IllFormedMetadata";
+    public static final String ERR_NO_ACCESS = "rdbms:NoAccess";
+    public static final String ERR_NO_OPERATOR = "rdbms:NoSupportedOperator";
+    public static final String ERR_NO_PROJECTION = "rdbms:NoProjection";
+    public static final String ERR_NO_GROUPBY = "rdbms:GroupByNotSupported";
+    public static final String ERR_SUP_OPERATOR = "rdbms:NoSupportedProjection";
+    public static final String NO_FIELD ="rdbms:NotMappedField";
+    public static final String INV_FIELD ="rdbms:InvalidField";
+    public static final String ERR_SUP_QUERY = "rdbms:NoSupportedQuery";
 
     private RDBMSConstants() {
     }

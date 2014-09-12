@@ -22,31 +22,35 @@
     <parent>
         <groupId>com.redhat.lightblue.rdbms</groupId>
         <artifactId>rdbms-pom</artifactId>
-        <version>0.9.1-SNAPSHOT</version>
+<<<<<<< HEAD
+        <version>0.1.0-SNAPSHOT</version>
+=======
+         <version>0.9.1-SNAPSHOT</version>
+>>>>>>> moved the pom version to the same version as the other repositories
     </parent>
-    <artifactId>rdbms-common</artifactId>
+    <groupId>com.redhat.lightblue.rdbms</groupId>
+    <artifactId>rdbms-metadata</artifactId>
     <packaging>jar</packaging>
+<<<<<<< HEAD
+    <version>0.1.0-SNAPSHOT</version>
+=======
     <version>0.9.1-SNAPSHOT</version>
+>>>>>>> moved the pom version to the same version as the other repositories
     <name>lightblue: ${project.groupId}|${project.artifactId}</name>
     <dependencies>
         <dependency>
-            <groupId>com.redhat.lightblue</groupId>
-            <artifactId>core-api</artifactId>
-            <version>${lightblue-core.version}</version>
+            <groupId>com.redhat.lightblue.rdbms</groupId>
+            <artifactId>rdbms-common</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.redhat.lightblue</groupId>
-            <artifactId>util</artifactId>
+            <artifactId>crud</artifactId>
             <version>${lightblue-core.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.redhat.lightblue</groupId>
-            <artifactId>metadata</artifactId>
-            <version>${lightblue-core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.skyscreamer</groupId>
-            <artifactId>jsonassert</artifactId>
+            <groupId>com.netflix.hystrix</groupId>
+            <artifactId>hystrix-core</artifactId>
         </dependency>
     </dependencies>
 </project>

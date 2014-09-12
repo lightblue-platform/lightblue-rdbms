@@ -25,6 +25,8 @@ import com.redhat.lightblue.metadata.rdbms.impl.RDBMSDataStoreParser;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Objects;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
@@ -53,7 +55,7 @@ public class RDBMSDataSourceConfiguration implements DataSourceConfiguration {
             } catch (Exception e) {
                 throw new IllegalArgumentException(node.toString() + ":" + e);
             }
-            x = node.get("databaseName");
+            x = node.get("database");
             if (x != null) {
                 databaseName = x.asText();
             }
@@ -91,10 +93,14 @@ public class RDBMSDataSourceConfiguration implements DataSourceConfiguration {
         if (databaseName.equals(name)) {
             datasource = dataSourceJDNIMap.entrySet().iterator().next().getValue();
         } else {
-            datasource = name;
+            datasource = dataSourceJDNIMap.get(name);
         }
         ds = RDBMSUtils.getDataSource(datasource);
         return ds;
+    }
+
+    public List<String> getDataSourceName() {
+        return new ArrayList(dataSourceJDNIMap.keySet());
     }
 
     public String getDatabaseName() {

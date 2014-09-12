@@ -141,6 +141,27 @@ public class RDBMS implements RootConverter {
             default:
                 throw new IllegalArgumentException("Not valid operation -> " + operation);
         }
-
     }
+    public void setOperationByName(String operation, Operation o) {
+        switch (operation) {
+            case LightblueOperators.DELETE:
+                delete = o;
+                return;
+            case LightblueOperators.FETCH:
+                fetch = o;
+                return;
+            case LightblueOperators.INSERT:
+                insert = o;
+                return;
+            case LightblueOperators.SAVE:
+                save = o;
+                return;
+            case LightblueOperators.UPDATE:
+                update = o;
+                return;
+            default:
+                throw new IllegalArgumentException("Not valid operation -> " + operation);
+        }
+    }
+
 }

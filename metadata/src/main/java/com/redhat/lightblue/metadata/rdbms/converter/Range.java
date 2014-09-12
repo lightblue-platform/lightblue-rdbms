@@ -16,34 +16,41 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.redhat.lightblue.crud.rdbms;
+package com.redhat.lightblue.metadata.rdbms.converter;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+/**
+ * Created by lcestari on 9/10/14.
+ */
+public class Range {
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
+    private final Long from;
+    private final Long to;
 
-
-public class RDBMSCRUDControllerTest {
-
-    public static DataSource dsMock = null;
-    public static Connection cMock = null;
-    public static String statement = null;
-    public static PreparedStatement psMock = null;
-    RDBMSCRUDController cut = null; //class under test
-
-    @Before
-    public void setUp() throws Exception {
-        cut = new RDBMSCRUDController(null);
-
+    public Range() {
+        this(null,null);
     }
 
-    @Test
-    public void testInsert() throws Exception {
-
+    public Range(Long from, Long to) {
+        this.from = from;
+        this.to = to;
     }
 
+    public Long getLimit() {
+        if(to != null && from != null) {
+            return to - from; // after the offset (M rows skipped), the remaining will be limited
+        }else{
+            return to;
+        }
+    }
+
+    public Long getOffset() {
+        return from;
+    }
+
+    public boolean isConfigured() {
+        if(to != null || from != null) {
+            return true;
+        }
+        return false;
+    }
 }

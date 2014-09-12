@@ -18,6 +18,14 @@
  */
 package com.redhat.lightblue.crud.rdbms;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
+import com.redhat.lightblue.common.rdbms.RDBMSDataStore;
+import com.redhat.lightblue.crud.DocCtx;
+import com.redhat.lightblue.metadata.rdbms.converter.DynVar;
 import com.redhat.lightblue.metadata.rdbms.converter.SelectStmt;
 import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.hystrix.rdbms.ExecuteUpdateCommand;
@@ -25,122 +33,255 @@ import com.redhat.lightblue.metadata.rdbms.converter.RDBMSContext;
 import com.redhat.lightblue.metadata.rdbms.converter.Translator;
 import com.redhat.lightblue.metadata.rdbms.enums.ExpressionOperators;
 import com.redhat.lightblue.metadata.rdbms.enums.IfOperators;
-import com.redhat.lightblue.metadata.rdbms.model.Bindings;
-import com.redhat.lightblue.metadata.rdbms.model.Conditional;
-import com.redhat.lightblue.metadata.rdbms.model.ElseIf;
-import com.redhat.lightblue.metadata.rdbms.model.Expression;
-import com.redhat.lightblue.metadata.rdbms.model.For;
-import com.redhat.lightblue.metadata.rdbms.model.ForEach;
-import com.redhat.lightblue.metadata.rdbms.model.If;
-import com.redhat.lightblue.metadata.rdbms.model.IfFieldCheckField;
-import com.redhat.lightblue.metadata.rdbms.model.IfFieldCheckValue;
-import com.redhat.lightblue.metadata.rdbms.model.IfFieldCheckValues;
-import com.redhat.lightblue.metadata.rdbms.model.IfFieldEmpty;
-import com.redhat.lightblue.metadata.rdbms.model.IfFieldRegex;
-import com.redhat.lightblue.metadata.rdbms.model.InOut;
-import com.redhat.lightblue.metadata.rdbms.model.Operation;
-import com.redhat.lightblue.metadata.rdbms.model.Statement;
-import com.redhat.lightblue.metadata.rdbms.model.Then;
-import com.redhat.lightblue.util.JsonDoc;
-import com.redhat.lightblue.util.Path;
-import java.util.ArrayList;
-import java.util.List;
+import com.redhat.lightblue.metadata.rdbms.enums.LightblueOperators;
+import com.redhat.lightblue.metadata.rdbms.enums.LoopOperators;
+import com.redhat.lightblue.metadata.rdbms.model.*;
+import com.redhat.lightblue.metadata.rdbms.util.Column;
+import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
+import com.redhat.lightblue.query.*;
+import com.redhat.lightblue.util.*;
+
+import javax.sql.DataSource;
+import java.util.*;
 
 /**
  *
  * @author lcestari
  */
 public class RDBMSProcessor {
-    public static void process(CRUDOperationContext crudOperationContext, RDBMSContext rdbmsContext, String operation) {
-        // result
-        List<JsonDoc> result = new ArrayList<>();
+    public static void process(RDBMSContext rdbmsContext) {
+        RDBMS rdbms = (RDBMS) rdbmsContext.getEntityMetadata().getEntitySchema().getProperties().get("rdbms");
+        if (rdbms == null) {
+            throw new IllegalStateException("Configured to use RDBMS but no RDBMS definition was found for the entity");
+        }
+        rdbmsContext.setRdbms(rdbms);
+        RDBMSDataStore d = (RDBMSDataStore) rdbmsContext.getEntityMetadata().getDataStore();
+        DataSource ds = rdbmsContext.getRDBMSDataSourceResolver().get(d);
+        rdbmsContext.setDataSource(ds);
+        rdbmsContext.setRowMapper(new VariableUpdateRowMapper(rdbmsContext));
 
-        //create the first SQL statements to run the RDBMS module
-        List<SelectStmt> inputStmt = Translator.ORACLE.translate(crudOperationContext, rdbmsContext);
+        String crudOperationName = rdbmsContext.getCRUDOperationName();
+        if(crudOperationName.equals("find")){
+            crudOperationName = LightblueOperators.FETCH;
+        }
+        Operation op = rdbmsContext.getRdbms().getOperationByName(crudOperationName);
+        if(op == null){
+            op = new Operation();
+            op.setName(crudOperationName);
+            op.setBindings(new Bindings());
+            op.getBindings().setInList(new ArrayList<InOut>());
+            op.getBindings().setOutList(new ArrayList<InOut>());
+            rdbmsContext.getRdbms().setOperationByName(crudOperationName, op);
+            op.getBindings().setInList(rdbmsContext.getIn());
+            op.getBindings().setOutList(rdbmsContext.getOut());
+        }
+        if(op.getBindings().getInList() != null) {
+            rdbmsContext.setIn(op.getBindings().getInList());
+        }
+        if(op.getBindings().getOutList() != null) {
+            rdbmsContext.setOut(op.getBindings().getOutList());
+        }
 
-        List<InOut> in = new ArrayList<>();
-        List<InOut> out = new ArrayList<>();
+        if(rdbmsContext.getQueryExpression() != null) {
+            // Dynamically create the first SQL statements to generate the input for the next defined expressions
+            List<SelectStmt> inputStmt = Translator.ORACLE.translate(rdbmsContext);
 
-        Operation op = rdbmsContext.getRdbms().getOperationByName(operation);
-        op.getBindings().setInList(in);
-        op.getBindings().setOutList(out);
+            rdbmsContext.setInitialInput(true);
+            new ExecuteUpdateCommand(rdbmsContext, inputStmt).execute();
+            rdbmsContext.setInitialInput(false);
 
-        recursiveExpressionCall(crudOperationContext, rdbmsContext, op, op.getExpressionList());
+            mapInputWithBinding(rdbmsContext);
+        } else {
+            // if no query was informed, the RDBMS module will try to convert the data from the request
+            List<DocCtx> documents = rdbmsContext.getCrudOperationContext().getDocuments();
+            for (DocCtx docCtx : documents){
+                List<ColumnToField> columnToFieldMap = rdbmsContext.getRdbms().getSQLMapping().getColumnToFieldMap();
+                for (ColumnToField ctf : columnToFieldMap) {
+                    Path path = new Path(ctf.getField());
+                    JsonNode jsonNode = docCtx.get(path);
+                    rdbmsContext.getInVar().put(jsonNode.textValue(), String.class,Column.createTemp(ctf.getField(),String.class.getCanonicalName()));
+                }
+            }
+        }
+        if(rdbmsContext.getUpdateExpression() != null) {
+            recursiveMapInputUpdateExpression(rdbmsContext, rdbmsContext.getUpdateExpression());
+        }
 
-        new ExecuteUpdateCommand(rdbmsContext, inputStmt).execute();
+        // Process the defined expressions
+        recursiveExpressionCall(rdbmsContext, op, op.getExpressionList());
 
         // processed final output
-        // TODO need to trnasform the out list into the those JSON documents
-        crudOperationContext.addDocuments(result);
+        if(op.getExpressionList() == null || op.getExpressionList().isEmpty()){
+            convertInputToProjection(rdbmsContext);
+        } else{
+            convertOutputToProjection(rdbmsContext);
+        }
     }
 
-    private static void recursiveExpressionCall(CRUDOperationContext crudOperationContext, RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList) {
+    private static void recursiveMapInputUpdateExpression(RDBMSContext rdbmsContext, UpdateExpression updateExpression) {
+        if(updateExpression instanceof UnsetExpression){
+            UnsetExpression unsetExpression = (UnsetExpression) updateExpression;
+            for (Path path : unsetExpression.getFields()) {
+                String key = path.toString();
+                rdbmsContext.getInVar().put("", String.class, Column.createTemp(key, String.class.getCanonicalName()));
+            }
+        } else if(updateExpression instanceof SetExpression){
+            SetExpression s = (SetExpression) updateExpression;
+            for (FieldAndRValue fieldAndRValue : s.getFields()) {
+                String key = fieldAndRValue.getField().toString();
+                String value = fieldAndRValue.getRValue().getValue().getValue().toString();
+                rdbmsContext.getInVar().put(value, String.class, Column.createTemp(key, String.class.getCanonicalName()));
+            }
+        }
+        /*
+            if(updateExpression instanceof ArrayAddExpression){
+            ArrayAddExpression a = (ArrayAddExpression) updateExpression;
+            rdbmsContext.getInputMappedByField().put(a.getField().toString(), a.getValues());
+            String key = a.getField().toString();
+            List<RValueExpression> value = a.getValues();
+         */
+
+        else {
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_SUP_OPERATOR, "The Update query is not supported");
+        }
+    }
+
+    private static void mapInputWithBinding(RDBMSContext rdbmsContext) {
+        List<InOut> in = rdbmsContext.getIn();
+        DynVar inVar = rdbmsContext.getInVar();
+        rdbmsContext.setInputMappedByField(new HashMap<String,List>());
+        rdbmsContext.setInputMappedByColumn(new HashMap<String, List>());
+        for (InOut i : in) {
+            rdbmsContext.getInputMappedByColumn().put(i.getColumn(),inVar.getValues(i.getColumn()));
+            rdbmsContext.getInputMappedByField().put(i.getField(), inVar.getValues(i.getColumn()));
+        }
+    }
+
+    private static void convertOutputToProjection(RDBMSContext rdbmsContext) {
+        convertProjection(rdbmsContext,rdbmsContext.getOut(),rdbmsContext.getOutVar());
+    }
+
+    private static void convertInputToProjection(RDBMSContext rdbmsContext) {
+        convertProjection(rdbmsContext,rdbmsContext.getIn(),rdbmsContext.getInVar());
+    }
+    private static void convertProjection(RDBMSContext rdbmsContext, List<InOut> inout, DynVar dynVar) {
+        List<JsonDoc> l = new ArrayList<>();
+
+        for (InOut io : inout) {
+            String c = io.getColumn().toString();
+            List values = dynVar.getValues(c);
+            JsonDoc jd = null;
+            if(values.isEmpty()){
+                jd = new JsonDoc(NullNode.getInstance());
+            }else if(values.size() > 1 ){
+                jd = new JsonDoc(new TextNode(values.get(1).toString()));
+            }else {
+                ArrayNode doc = new ArrayNode(rdbmsContext.getJsonNodeFactory());
+                for (Object value : values) {
+                    doc.add(value.toString());
+                }
+                jd = new JsonDoc(doc);
+            }
+            l.add(jd);
+        }
+
+        rdbmsContext.getCrudOperationContext().addDocuments(l);
+    }
+
+    private static void recursiveExpressionCall(RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList) {
         if (expressionList == null) {
             return;
         }
         for (Expression expression : expressionList) {
-            final String simpleName = expression.getClass().getSimpleName(); // Could be 'if's using isntanceof
+            final String simpleName = expression.getClass().getSimpleName();
             switch (simpleName) {
                 case ExpressionOperators.CONDITIONAL:
                     Conditional c = (Conditional) expression;
-                    recursiveConditionalCall(crudOperationContext, rdbmsContext, op, expressionList, c);
+                    recursiveConditionalCall(rdbmsContext, op, expressionList, c);
                     break;
                 case ExpressionOperators.FOR:
                     For f = (For) expression;
-                    recursiveForCall(crudOperationContext, rdbmsContext, op, expressionList, f);
+                    recursiveForCall(rdbmsContext, op, expressionList, f);
                     break;
                 case ExpressionOperators.FOREACH:
                     ForEach e = (ForEach) expression;
-                    recursiveForEachCall(crudOperationContext, rdbmsContext, op, expressionList, e);
+                    recursiveForEachCall(rdbmsContext, op, expressionList, e);
                     break;
                 case ExpressionOperators.STATEMENT:
                     Statement s = (Statement) expression;
-                    recursiveStatementCall(crudOperationContext, rdbmsContext, op, expressionList, s);
+                    recursiveStatementCall(rdbmsContext, op, expressionList, s);
                     break;
                 default:
                     throw new IllegalStateException("New implementation of Expression not present in ExpressionOperators");
             }
+            //reset the loop operator
+            rdbmsContext.setCurrentLoopOperator(null);
         }
     }
 
-    private static void recursiveConditionalCall(CRUDOperationContext crudOperationContext, RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList, Conditional c) {
-        if (evaluateConditions(c.getIf(), op.getBindings())) {
-            recursiveThenCall(crudOperationContext, rdbmsContext, op, expressionList, c.getThen());
+    private static void recursiveConditionalCall(RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList, Conditional c) {
+        if (evaluateConditions(c.getIf(), op.getBindings(), rdbmsContext)) {
+            recursiveThenCall(rdbmsContext, op, expressionList, c.getThen());
         } else {
             boolean notEnter = true;
             if (c.getElseIfList() != null && !c.getElseIfList().isEmpty()) {
                 for (ElseIf ef : c.getElseIfList()) {
-                    if (evaluateConditions(ef.getIf(), op.getBindings())) {
+                    if (evaluateConditions(ef.getIf(), op.getBindings(), rdbmsContext)) {
                         notEnter = false;
-                        recursiveThenCall(crudOperationContext, rdbmsContext, op, expressionList, ef.getThen());
+                        recursiveThenCall(rdbmsContext, op, expressionList, ef.getThen());
                     }
                 }
             }
             if (notEnter && c.getElse() != null) {
-                recursiveThenCall(crudOperationContext, rdbmsContext, op, expressionList, c.getElse());
+                recursiveThenCall(rdbmsContext, op, expressionList, c.getElse());
             }
         }
     }
 
-    private static void recursiveForCall(CRUDOperationContext crudOperationContext, RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList, For f) {
-        // TODO need to transform the IN and OUT  into a Map to improve the processing performance. Also need that map for variables
-        String var = f.getLoopCounterVariableName(); // Update this string everytime 
+    private static void recursiveForCall(RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList, For f) {
+        String var = f.getLoopCounterVariableName();
+        Column temp = Column.createTemp(var, Integer.class.getCanonicalName());
+        rdbmsContext.getOutVar().put(0, Integer.class, temp);
         int loopTimes = f.getLoopTimes();
         for (int i = 0; i < loopTimes; i++) {
-            recursiveExpressionCall(crudOperationContext, rdbmsContext, op, f.getExpressions());
+            if(LoopOperators.BREAK.equals(rdbmsContext.getCurrentLoopOperator())){
+                break;
+            }else if(LoopOperators.CONTINUE.equals(rdbmsContext.getCurrentLoopOperator())){
+                rdbmsContext.getOutVar().update(i + 1, temp);
+                continue;
+            }
+            recursiveExpressionCall(rdbmsContext, op, f.getExpressions());
+            rdbmsContext.getOutVar().update(i + 1, temp);
         }
     }
 
-    private static void recursiveForEachCall(CRUDOperationContext crudOperationContext, RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList, ForEach e) {
+    private static void recursiveForEachCall( RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList, ForEach e) {
         Path field = e.getIterateOverField();
-        // TODO finish this implementation. It need to interate over it, I supose that only arrays will be informed. The input variable will change to each value this array contains so the user can iteract with the array content on the Expressions (statements, conditional, etc)
-        // TODO if a statement runs and alter the variable of for each, should it notice or not? possible bug        
-        for (int i = 0; i < 1; i++) {
-            recursiveExpressionCall(crudOperationContext, rdbmsContext, op, e.getExpressions());
+
+        List values = null;
+        String key = field.toString();
+        String var = key+"Temp";
+        if(!rdbmsContext.getInVar().getValues(key).isEmpty()){
+            values = rdbmsContext.getInVar().getValues(key);
+        } else {
+            values = rdbmsContext.getOutVar().getValues(key);
+        }
+
+        if(values == null || values.isEmpty()) {
+            return;
+        }
+
+        Column temp = Column.createTemp(var, values.get(0).getClass().getCanonicalName());
+        rdbmsContext.getOutVar().put(values.get(0), values.get(0).getClass(), temp);
+        for (int i = 0; i < values.size(); i++) {
+            recursiveExpressionCall(rdbmsContext, op, e.getExpressions());
+            if(i+1 < values.size()) {
+                rdbmsContext.getOutVar().update(values.get(i + 1), temp);
+            }
         }
     }
 
-    private static void recursiveStatementCall(CRUDOperationContext crudOperationContext, RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList, Statement s) {
+    private static void recursiveStatementCall(RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList, Statement s) {
         String type = s.getType();
         String sql = s.getSQL();
         rdbmsContext.setSql(sql);
@@ -148,24 +289,27 @@ public class RDBMSProcessor {
         new ExecuteUpdateCommand(rdbmsContext).execute();
     }
 
-    private static void recursiveThenCall(CRUDOperationContext crudOperationContext, RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList, Then then) {
+    private static void recursiveThenCall( RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList, Then then) {
         if (then.getExpressions() != null && !then.getExpressions().isEmpty()) {
-            recursiveExpressionCall(crudOperationContext, rdbmsContext, op, then.getExpressions());
+            recursiveExpressionCall(rdbmsContext, op, then.getExpressions());
         } else {
-            // "$fail", "$continue", "$break"
-            // TODO put the flang into the context and make the static methods aware of it
-            then.getLoopOperator();
+            String loopOperator = then.getLoopOperator();
+            if(LoopOperators.FAIL.equals(loopOperator)){
+                throw new RuntimeException("Conditionals informed lead to a failure specified in RDBMS metadata");
+            }else{
+                rdbmsContext.setCurrentLoopOperator(loopOperator);
+            }
         }
     }
 
-    static boolean evaluateConditions(If i, Bindings bindings) {
+    static boolean evaluateConditions(If i, Bindings bindings,RDBMSContext rdbmsContext) {
         final String simpleName = i.getClass().getSimpleName();
         final boolean allConditions;
         switch (simpleName) {
             case IfOperators.IFAND:
                 allConditions = true;
                 for (Object o : i.getConditions()) {
-                    if (!evaluateConditions((If) o, bindings)) {
+                    if (!evaluateConditions((If) o, bindings, rdbmsContext)) {
                         return false;
                     }
                 }
@@ -175,13 +319,13 @@ public class RDBMSProcessor {
             case IfOperators.IFFIELDCHECKVALUES:
             case IfOperators.IFFIELDEMPTY:
             case IfOperators.IFFIELDREGEX:
-                return evaluateField(i, bindings, simpleName);
+                return evaluateField(i, bindings, simpleName, rdbmsContext);
             case IfOperators.IFNOT:
-                return !evaluateConditions((If) i.getConditions().get(0), bindings);
+                return !evaluateConditions((If) i.getConditions().get(0), bindings, rdbmsContext);
             case IfOperators.IFOR:
                 allConditions = false;
                 for (Object o : i.getConditions()) {
-                    if (evaluateConditions((If) o, bindings)) {
+                    if (evaluateConditions((If) o, bindings, rdbmsContext)) {
                         return true;
                     }
                 }
@@ -192,24 +336,23 @@ public class RDBMSProcessor {
         return allConditions;
     }
 
-    //TODO evaluate the fields
-    private static boolean evaluateField(If i, Bindings bindings, String simpleName) {
+    private static boolean evaluateField(If i, Bindings bindings, String simpleName,RDBMSContext rdbmsContext) {
         switch (simpleName) {
             case IfOperators.IFFIELDCHECKFIELD:
                 IfFieldCheckField fcf = (IfFieldCheckField) i;
-                return false;
+                return ConditionalEvaluator.evaluate(rdbmsContext.getInputMappedByField().get(fcf.getField().toString()),fcf.getOp(),rdbmsContext.getInputMappedByField().get(fcf.getRfield().toString()),rdbmsContext);
             case IfOperators.IFFIELDCHECKVALUE:
                 IfFieldCheckValue fcv = (IfFieldCheckValue) i;
-                return false;
+                return ConditionalEvaluator.evaluate(rdbmsContext.getInputMappedByField().get(fcv.getField().toString()).toString(),fcv.getOp(),fcv.getValue(),rdbmsContext);
             case IfOperators.IFFIELDCHECKVALUES:
                 IfFieldCheckValues fcs = (IfFieldCheckValues) i;
-                return false;
+                return ConditionalEvaluator.evaluate(rdbmsContext.getInputMappedByField().get(fcs.getField().toString()),fcs.getOp(),fcs.getValues(),rdbmsContext);
             case IfOperators.IFFIELDEMPTY:
                 IfFieldEmpty fe = (IfFieldEmpty) i;
-                return false;
+                return ConditionalEvaluator.evaluateEmpty(fe, rdbmsContext);
             case IfOperators.IFFIELDREGEX:
                 IfFieldRegex fr = (IfFieldRegex) i;
-                return false;
+                return ConditionalEvaluator.evaluateRegex(fr, rdbmsContext);
             default:
                 throw new IllegalStateException("New implementation of If not present in IfOperators");
         }

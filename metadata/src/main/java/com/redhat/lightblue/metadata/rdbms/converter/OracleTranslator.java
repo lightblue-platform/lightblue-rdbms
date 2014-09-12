@@ -18,6 +18,7 @@
  */
 package com.redhat.lightblue.metadata.rdbms.converter;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.rdbms.model.Join;
 import com.redhat.lightblue.metadata.rdbms.model.ProjectionMapping;
 import com.redhat.lightblue.query.RegexMatchExpression;
@@ -34,44 +35,44 @@ import java.util.LinkedList;
 public class OracleTranslator extends Translator {
 
     @Override
-    protected void generateWhere(SelectStmt s, StringBuilder queryStr, LinkedList<String> whereConditionals) {
-        super.generateWhere(s,queryStr,whereConditionals);
-        Long limit = s.getLimit();
-        Long offset = s.getOffset();
-        if (s.getLimit() != null && offset != null) {
+    protected void generateWhere(SelectStmt selectStmt, StringBuilder queryStringBuilder, LinkedList<String> whereConditionals) {
+        super.generateWhere(selectStmt, queryStringBuilder,whereConditionals);
+        Long limit = selectStmt.getRange().getLimit();
+        Long offset = selectStmt.getRange().getOffset();
+        if (limit != null && offset != null) {
             offset = offset +limit;
-            queryStr.append("AND ROWNUM BETWEEN ").append(Long.toString(offset)).append(" AND ").append(Long.toString(limit)).append(" ");
+            queryStringBuilder.append("AND ROWNUM BETWEEN ").append(Long.toString(offset)).append(" AND ").append(Long.toString(limit)).append(" ");
         } else if (limit != null) {
-            queryStr.append("AND ROWNUM >= ").append(Long.toString(limit)).append(" ");
+            queryStringBuilder.append("AND ROWNUM >= ").append(Long.toString(limit)).append(" ");
         } else if (offset != null) {
-            queryStr.append("AND ROWNUM <=").append(Long.toString(offset)).append(" ");
+            queryStringBuilder.append("AND ROWNUM <=").append(Long.toString(offset)).append(" ");
         }
     }
 
     @Override
-    protected void generateLimitOffset(SelectStmt s, StringBuilder queryStr, Long limit, Long offset) {
-        //Do nothing
+    protected void generateLimitOffset(SelectStmt selectStmt, StringBuilder queryStringBuilder, Range range) {
+        // Stop the default implementation to run
     }
 
     @Override
-    protected void recursiveTranslateRegexMatchExpression(TranslationContext c, RegexMatchExpression expr) {
-        String regex = expr.getRegex();
-        Path lField = expr.getField();
+    protected void recursiveTranslateRegexMatchExpression(TranslationContext translationContext, RegexMatchExpression regexMatchExpression) {
+        String regex = regexMatchExpression.getRegex();
+        Path lField = regexMatchExpression.getField();
 
         String f = lField.toString();
 
-        ProjectionMapping fpm = c.fieldToProjectionMap.get(f);
-        Join fJoin = c.projectionToJoinMap.get(fpm);
-        fillTables(c, c.baseStmt.getFromTables(), fJoin);
-        fillWhere(c, c.baseStmt.getWhereConditionals(), fJoin);
+        ProjectionMapping fpm = translationContext.fieldToProjectionMap.get(f);
+        Join fJoin = translationContext.projectionToJoinMap.get(fpm);
+        fillTables(translationContext, translationContext.baseStmt.getFromTables(), fJoin);
+        fillWhere(translationContext, translationContext.baseStmt.getWhereConditionals(), fJoin);
 
-        if(c.notOp){
-            throw Error.get("not supported operator", expr.toString());
+        if(translationContext.notOp){
+            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, regexMatchExpression.toString());
         }
-        String options = expr.isCaseInsensitive()?"i":"c";
-        options = options + (expr.isDotAll()?"n":"");
-        options = options + (expr.isMultiline()?"m":"");
+        String options = regexMatchExpression.isCaseInsensitive()?"i":"c";
+        options = options + (regexMatchExpression.isDotAll()?"n":"");
+        options = options + (regexMatchExpression.isMultiline()?"m":"");
         String s =  "REGEXP_LIKE("+ fpm.getColumn() +",'"+ regex + "','"+ options +"')";
-        addConditional(c, s);
+        addConditional(translationContext, s);
     }
 }

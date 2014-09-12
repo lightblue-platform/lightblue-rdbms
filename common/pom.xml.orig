@@ -22,11 +22,19 @@
     <parent>
         <groupId>com.redhat.lightblue.rdbms</groupId>
         <artifactId>rdbms-pom</artifactId>
+<<<<<<< HEAD
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>rdbms-common</artifactId>
+    <packaging>jar</packaging>
+    <version>0.1.0-SNAPSHOT</version>
+=======
         <version>0.9.1-SNAPSHOT</version>
     </parent>
     <artifactId>rdbms-common</artifactId>
     <packaging>jar</packaging>
     <version>0.9.1-SNAPSHOT</version>
+>>>>>>> moved the pom version to the same version as the other repositories
     <name>lightblue: ${project.groupId}|${project.artifactId}</name>
     <dependencies>
         <dependency>
@@ -37,7 +45,7 @@
         <dependency>
             <groupId>com.redhat.lightblue</groupId>
             <artifactId>util</artifactId>
-            <version>${lightblue-core.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.redhat.lightblue</groupId>

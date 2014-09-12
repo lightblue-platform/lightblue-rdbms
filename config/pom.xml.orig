@@ -22,12 +22,20 @@
     <parent>
         <groupId>com.redhat.lightblue.rdbms</groupId>
         <artifactId>rdbms-pom</artifactId>
+<<<<<<< HEAD
+        <version>0.1.0-SNAPSHOT</version>
+=======
          <version>0.9.1-SNAPSHOT</version>
+>>>>>>> moved the pom version to the same version as the other repositories
     </parent>
     <groupId>com.redhat.lightblue.rdbms</groupId>
-    <artifactId>rdbms-metadata</artifactId>
+    <artifactId>rdbms-config</artifactId>
     <packaging>jar</packaging>
-    <version>0.9.1-SNAPSHOT</version>
+<<<<<<< HEAD
+    <version>0.1.0-SNAPSHOT</version>
+=======
+     <version>0.9.1-SNAPSHOT</version>
+>>>>>>> moved the pom version to the same version as the other repositories
     <name>lightblue: ${project.groupId}|${project.artifactId}</name>
     <dependencies>
         <dependency>
@@ -36,13 +44,34 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.redhat.lightblue</groupId>
-            <artifactId>crud</artifactId>
+            <groupId>com.redhat.lightblue.config</groupId>
+            <artifactId>core-config</artifactId>
             <version>${lightblue-core.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.netflix.hystrix</groupId>
-            <artifactId>hystrix-core</artifactId>
+            <groupId>com.redhat.lightblue.rdbms</groupId>
+            <artifactId>rdbms-metadata</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.redhat.lightblue.rdbms</groupId>
+            <artifactId>rdbms-crud</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.16</version>
+                <configuration>
+                    <workingDirectory>${project.build.directory}</workingDirectory>
+                    <systemPropertyVariables>
+                        <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
