@@ -18,8 +18,8 @@
  */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
 import com.redhat.lightblue.util.Path;
 
 public class IfFieldRegex extends If<If, If> {
@@ -81,10 +81,10 @@ public class IfFieldRegex extends If<If, If> {
     @Override
     public <T> void convert(MetadataParser<T> p, Object lastArrayNode, T node) {
         if (field == null || field.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No field informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No field informed");
         }
         if (regex == null || regex.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No regex informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No regex informed");
         }
         T s = p.newNode();
 
@@ -121,10 +121,10 @@ public class IfFieldRegex extends If<If, If> {
             String path = p.getStringProperty(pathregex, "field");
             String regex = p.getStringProperty(pathregex, "regex");
             if (path == null || path.isEmpty()) {
-                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "fieldRegex: field not informed");
+                throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "fieldRegex: field not informed");
             }
             if (regex == null || regex.isEmpty()) {
-                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "fieldRegex: regex not informed");
+                throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "fieldRegex: regex not informed");
             }
             String caseInsensitive = p.getStringProperty(pathregex, "caseInsensitive");
             String multiline = p.getStringProperty(pathregex, "multiline");

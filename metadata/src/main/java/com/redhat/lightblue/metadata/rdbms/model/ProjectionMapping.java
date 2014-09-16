@@ -18,9 +18,9 @@
  */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.rdbms.converter.SimpleConverter;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
 
 /**
  *
@@ -35,10 +35,10 @@ public class ProjectionMapping implements SimpleConverter {
     public <T> void convert(MetadataParser<T> p, Object expressionsNode) {
         T eT = p.newNode();
         if (column == null || column.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Missing column field");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "Missing column field");
         }
         if (field == null || field.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Missing 'field' field");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "Missing 'field' field");
         }
         p.putString(eT, "column", column);
         p.putString(eT, "field", field);
@@ -56,11 +56,11 @@ public class ProjectionMapping implements SimpleConverter {
         String s = p.getStringProperty(t, "sort");
 
         if (c == null || c.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Missing column field");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "Missing column field");
         }
 
         if (f == null || f.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Missing 'field' field");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "Missing 'field' field");
         }
 
         column = c;

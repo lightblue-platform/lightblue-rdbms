@@ -18,9 +18,9 @@
  */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.rdbms.converter.RootConverter;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
 import java.util.List;
 
 public class Bindings implements RootConverter {
@@ -32,7 +32,7 @@ public class Bindings implements RootConverter {
         boolean bIn = this.getInList() == null || this.getInList().isEmpty();
         boolean bOut = this.getOutList() == null || this.getOutList().isEmpty();
         if (bIn && bOut) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No fields found for binding");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No fields found for binding");
         }
         T bT = p.newNode();
         if (!bIn) {

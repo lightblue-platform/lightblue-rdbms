@@ -18,10 +18,10 @@
  */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.rdbms.converter.RootConverter;
 import com.redhat.lightblue.metadata.rdbms.enums.LightblueOperators;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
 import java.util.List;
 
 public class Operation implements RootConverter {
@@ -32,7 +32,7 @@ public class Operation implements RootConverter {
     @Override
     public <T> void convert(MetadataParser<T> p, T parent) {
         if (this.getName() == null) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Operation malformated");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "Operation malformated");
         }
 
         T oT = p.newNode();
@@ -46,7 +46,7 @@ public class Operation implements RootConverter {
 
     public <T> void convertExpressions(MetadataParser<T> p, List<Expression> expressionList, Object expressions) {
         if (expressionList == null || expressionList.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Expressions not informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "Expressions not informed");
         }
         for (Expression expression : expressionList) {
             expression.convert(p, expressions);
