@@ -56,7 +56,6 @@ public class ITCaseRDBMSToolsTest {
                 }
                 ic.createSubcontext("java:");
 
-
                 JdbcConnectionPool jdbcs = JdbcConnectionPool.create("jdbc:h2:file:/tmp/test.db;FILE_LOCK=NO;MVCC=TRUE;DB_CLOSE_ON_EXIT=TRUE", "sa", "sasasa");
 
                 ic.bind("java:/mydatasource", jdbcs);
