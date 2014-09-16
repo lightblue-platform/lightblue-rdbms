@@ -30,6 +30,8 @@ public class RDBMSDataStore implements DataStore, Serializable {
 
     private static final long serialVersionUID = 1l;
 
+    public static final String BACKEND = "rdbms";
+
     private String datasourceName;
     private String databaseName;
 
@@ -44,7 +46,7 @@ public class RDBMSDataStore implements DataStore, Serializable {
 
     @Override
     public String getBackend() {
-        return "rdbms";
+        return BACKEND;
     }
 
     public String getDatasourceName() {

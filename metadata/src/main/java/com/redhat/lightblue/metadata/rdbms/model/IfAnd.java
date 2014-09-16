@@ -26,14 +26,14 @@ public class IfAnd extends If<If, If> {
     @Override
     public <T> void convert(MetadataParser<T> p, Object lastArrayNode, T node) {
         if (getConditions() == null || getConditions().size() < 2) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "$and/$all doesn't have enough conditionals");
+            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "and/all doesn't have enough conditionals");
         }
         Object eT;
         if (lastArrayNode == null) {
-            eT = p.newArrayField(node, "$and");
+            eT = p.newArrayField(node, "and");
         } else {
             T iT = p.newNode();
-            eT = p.newArrayField(iT, "$and");
+            eT = p.newArrayField(iT, "and");
             p.addObjectToArray(lastArrayNode, iT);
         }
         for (If i : getConditions()) {
@@ -44,11 +44,11 @@ public class IfAnd extends If<If, If> {
     @Override
     public <T> If parse(MetadataParser<T> p, T ifT) {
         If x = null;
-        List<T> andArray = p.getObjectList(ifT, "$and");
+        List<T> andArray = p.getObjectList(ifT, "and");
         if (andArray != null) {
             x = parseIfs(p, andArray, new IfAnd());
         } else {
-            List<T> allArray = p.getObjectList(ifT, "$all");
+            List<T> allArray = p.getObjectList(ifT, "all");
             if (allArray != null) {
                 x = parseIfs(p, allArray, new IfAnd());
             }
