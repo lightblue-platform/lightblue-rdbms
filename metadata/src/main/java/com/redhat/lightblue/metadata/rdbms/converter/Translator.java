@@ -288,7 +288,8 @@ public abstract class Translator {
         }
     }
 
-    public List<SelectStmt> translate(RDBMSContext rdbmsContext) {
+    public List<SelectStmt>
+    translate(RDBMSContext rdbmsContext) {
         LOGGER.debug("translate {}", rdbmsContext.getQueryExpression());
         com.redhat.lightblue.util.Error.push("translateQuery");
         FieldTreeNode fieldTreeNode = rdbmsContext.getEntityMetadata().getFieldTreeRoot();
