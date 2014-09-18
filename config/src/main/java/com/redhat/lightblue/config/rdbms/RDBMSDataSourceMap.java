@@ -94,6 +94,22 @@ public class RDBMSDataSourceMap implements RDBMSDataSourceResolver {
         return ds;
     }
 
+    public Map<String, DataSourceConfiguration> getDatasources() {
+        return datasources;
+    }
+
+    public Map<String, DataSourceConfiguration> getDatabases() {
+        return databases;
+    }
+
+    public Map<String, DataSource> getDbMap() {
+        return dbMap;
+    }
+
+    public Map<String, DataSource> getDsMap() {
+        return dsMap;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

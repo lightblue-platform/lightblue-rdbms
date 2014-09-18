@@ -41,6 +41,7 @@ public class RDBMSDataSourceMapTest {
         datasource.getDataSourceJDNIMap().put("test","jndi");
         cut = new RDBMSDataSourceMap(ds);
         RDBMSDataStore store = new RDBMSDataStore("testDB",null);
+
         DataSource dataSource = cut.get(store);
         assertEquals(new StubDataSource(), dataSource);
     }
