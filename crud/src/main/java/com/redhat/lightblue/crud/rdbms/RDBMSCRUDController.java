@@ -234,4 +234,12 @@ public class RDBMSCRUDController implements CRUDController {
     public void newSchema(Metadata md, EntityMetadata emd) {
 
     }
+
+    public JsonNodeFactory getNodeFactory() {
+        return nodeFactory;
+    }
+
+    public RDBMSDataSourceResolver getRds() {
+        return rds;
+    }
 }
