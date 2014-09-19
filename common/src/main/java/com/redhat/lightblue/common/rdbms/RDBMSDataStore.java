@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
+ *  An implementation of com.redhat.lightblue.metadata.DataStore
  *
  * @author lcestari
  */

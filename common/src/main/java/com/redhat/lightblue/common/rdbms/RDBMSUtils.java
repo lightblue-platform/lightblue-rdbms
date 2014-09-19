@@ -26,9 +26,20 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+/**
+ * This class is responsible to do any generic static task that can help any other module, for application and test purpose
+ */
 public class RDBMSUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(RDBMSUtils.class);
 
+    /**
+     * This method search in the javax.naming.InitialContext for the given JNDI name. An Error will rise if not found.
+     *
+     * @param name
+     *  The JNDI name
+     * @return
+     *  If found, it will return the DataSource bound into the InitialContext
+     */
     public static DataSource getDataSource(String name) {
         LOGGER.debug("getDataSource() start");
         Error.push("RDBMSUtils");
