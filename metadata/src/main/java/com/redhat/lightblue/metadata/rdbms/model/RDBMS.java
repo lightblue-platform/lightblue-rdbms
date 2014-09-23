@@ -18,12 +18,19 @@
 */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.redhat.lightblue.metadata.parser.Extensions;
+import com.redhat.lightblue.metadata.parser.JSONMetadataParser;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.rdbms.converter.RootConverter;
 import com.redhat.lightblue.metadata.rdbms.enums.DialectOperators;
 import com.redhat.lightblue.metadata.rdbms.enums.LightblueOperators;
 import com.redhat.lightblue.metadata.rdbms.enums.LoopOperators;
 import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
+import com.redhat.lightblue.metadata.types.DefaultTypes;
+import com.redhat.lightblue.util.JsonUtils;
 
 public class RDBMS implements RootConverter {
 
@@ -63,7 +70,9 @@ public class RDBMS implements RootConverter {
             throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No dialect informed");
         }
         p.putString(rdbms, "dialect", dialect);
-        this.getSQLMapping().convert(p, rdbms);
+        if (this.getSQLMapping() != null) {
+            this.getSQLMapping().convert(p, rdbms);
+        }
         p.putObject(parent, "rdbms", rdbms);
     }
 
@@ -164,4 +173,14 @@ public class RDBMS implements RootConverter {
         }
     }
 
+    @Override
+    public String toString() {
+        Extensions<JsonNode> x = new Extensions<>();
+        x.addDefaultExtensions();
+        JsonNodeFactory factory = JsonNodeFactory.withExactBigDecimals(false);
+        JSONMetadataParser p = new JSONMetadataParser(x, new DefaultTypes(), factory);
+        ObjectNode root = factory.objectNode();
+        convert(p, root);
+        return JsonUtils.prettyPrint(root.get("rdbms"));
+    }
 }

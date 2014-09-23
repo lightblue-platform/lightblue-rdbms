@@ -18,7 +18,11 @@
  */
 package com.redhat.lightblue.metadata.rdbms.converter;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.rdbms.RDBMSDataSourceResolver;
 import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
@@ -29,7 +33,9 @@ import com.redhat.lightblue.query.Projection;
 import com.redhat.lightblue.query.QueryExpression;
 import com.redhat.lightblue.query.Sort;
 import com.redhat.lightblue.query.UpdateExpression;
+import com.redhat.lightblue.util.JsonUtils;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -340,5 +346,160 @@ public class RDBMSContext<T> {
 
     public UpdateExpression getUpdateExpression() {
         return updateExpression;
+    }
+
+    @Override
+    public String toString() {
+        JsonNodeFactory jsonNodeFactory1 = jsonNodeFactory;
+        if(jsonNodeFactory == null) {
+            jsonNodeFactory1 = JsonNodeFactory.withExactBigDecimals(true);
+        }
+        ObjectNode objectNode = jsonNodeFactory1.objectNode();
+        NullNode nullNode = jsonNodeFactory1.nullNode();
+        String nullNodeString = JsonUtils.prettyPrint(nullNode);
+        String s = null;
+        JsonNode j = null;
+        try {
+
+            s = fromToQueryRange == null? nullNodeString : fromToQueryRange.toString();
+            objectNode.set("fromToQueryRange", JsonUtils.json(s));
+
+            j = dataSource == null? nullNode : jsonNodeFactory1.textNode(dataSource.toString());
+            objectNode.set("dataSource", j);
+
+            j = dataSourceName == null? nullNode : jsonNodeFactory1.textNode(dataSourceName.toString());
+            objectNode.set("dataSourceName", j);
+
+            j = connection == null? nullNode : jsonNodeFactory1.textNode(connection.toString());
+            objectNode.set("connection", j);
+
+            j = preparedStatement == null? nullNode : jsonNodeFactory1.textNode(preparedStatement.toString());
+            objectNode.set("preparedStatement", j);
+
+            j = resultBoolean == null? nullNode : jsonNodeFactory1.booleanNode(resultBoolean);
+            objectNode.set("resultBoolean", j);
+
+            j = resultInteger == null? nullNode : jsonNodeFactory1.numberNode(resultInteger);
+            objectNode.set("resultInteger", j);
+
+            j = rowMapper == null? nullNode : jsonNodeFactory1.textNode(rowMapper.toString());
+            objectNode.set("rowMapper", j);
+
+            if(resultList != null) {
+                ArrayNode jsonNodes = jsonNodeFactory1.arrayNode();
+                for(T a : resultList){
+                    jsonNodes.add(a.toString());
+                }
+                objectNode.set("resultList", jsonNodes);
+            } else {
+                objectNode.set("resultList", nullNode);
+            }
+
+            s = rdbms == null? nullNodeString : rdbms.toString();
+            objectNode.set("rdbms", JsonUtils.json(s));
+
+            j = sql == null? nullNode : jsonNodeFactory1.textNode(sql.toString());
+            objectNode.set("sql", j);
+
+            j = type == null? nullNode : jsonNodeFactory1.textNode(type.toString());
+            objectNode.set("type", j);
+
+            j = entityMetadata == null? nullNode : jsonNodeFactory1.textNode(entityMetadata.toString());
+            objectNode.set("entityMetadata", j);
+
+            j = queryExpression == null? nullNode : jsonNodeFactory1.textNode(queryExpression.toString());
+            objectNode.set("queryExpression", j);
+
+            j = projection == null? nullNode : jsonNodeFactory1.textNode(projection.toString());
+            objectNode.set("projection", j);
+
+            j = sort == null? nullNode : jsonNodeFactory1.textNode(sort.toString());
+            objectNode.set("sort", j);
+
+            if(temporaryVariable != null) {
+                ObjectNode jsonNodes = jsonNodeFactory1.objectNode();
+                for(Map.Entry<String, Object> a : temporaryVariable.entrySet()){
+                    jsonNodes.set(a.getKey(),jsonNodeFactory1.textNode(a.getValue().toString()));
+                }
+                objectNode.set("temporaryVariable", jsonNodes);
+            } else {
+                objectNode.set("temporaryVariable", nullNode);
+            }
+
+            if(in != null) {
+                ArrayNode jsonNodes = jsonNodeFactory1.arrayNode();
+                for(InOut a : in){
+                    jsonNodes.add(a.toString());
+                }
+                objectNode.set("in", jsonNodes);
+            } else {
+                objectNode.set("in", nullNode);
+            }
+
+            s = out == null? nullNodeString : out.toString();
+            if(out != null) {
+                ArrayNode jsonNodes = jsonNodeFactory1.arrayNode();
+                for(InOut a : out){
+                    jsonNodes.add(a.toString());
+                }
+                objectNode.set("out", jsonNodes);
+            } else {
+                objectNode.set("out", nullNode);
+            }
+
+            s = inVar == null? nullNodeString : inVar.toString();
+            objectNode.set("inVar", JsonUtils.json(s));
+
+            s = outVar == null? nullNodeString : outVar.toString();
+            objectNode.set("outVar", JsonUtils.json(s));
+
+            objectNode.set("initialInput", JsonUtils.json(Boolean.toString(initialInput)));
+
+            if(inputMappedByField != null) {
+                ObjectNode jsonNodes = jsonNodeFactory1.objectNode();
+                for(Map.Entry<String, Object> a : inputMappedByField.entrySet()){
+                    jsonNodes.set(a.getKey(),jsonNodeFactory1.textNode(a.getValue().toString()));
+                }
+                objectNode.set("inputMappedByField", jsonNodes);
+            } else {
+                objectNode.set("inputMappedByField", nullNode);
+            }
+
+            if(inputMappedByColumn != null) {
+                ObjectNode jsonNodes = jsonNodeFactory1.objectNode();
+                for(Map.Entry<String, Object> a : inputMappedByColumn.entrySet()){
+                    jsonNodes.set(a.getKey(),jsonNodeFactory1.textNode(a.getValue().toString()));
+                }
+                objectNode.set("inputMappedByColumn", jsonNodes);
+            } else {
+                objectNode.set("inputMappedByColumn", nullNode);
+            }
+
+            s = jsonNodeFactory == null? nullNodeString : jsonNodeFactory.toString();
+            objectNode.set("jsonNodeFactory", jsonNodeFactory1.textNode(s));
+
+            s = RDBMSDataSourceResolver == null? nullNodeString : RDBMSDataSourceResolver.toString();
+            objectNode.set("RDBMSDataSourceResolver", JsonUtils.json(s));
+
+            s = fieldAccessRoleEvaluator == null? nullNodeString : fieldAccessRoleEvaluator.toString();
+            objectNode.set("fieldAccessRoleEvaluator", jsonNodeFactory1.textNode(s));
+
+            s = CRUDOperationName == null? nullNodeString : CRUDOperationName.toString();
+            objectNode.set("CRUDOperationName", jsonNodeFactory1.textNode(s));
+
+            s = crudOperationContext == null? nullNodeString : crudOperationContext.toString();
+            objectNode.set("crudOperationContext", jsonNodeFactory1.textNode(s));
+
+            s = currentLoopOperator == null? nullNodeString : currentLoopOperator.toString();
+            objectNode.set("currentLoopOperator", jsonNodeFactory1.textNode(s));
+
+            s = updateExpression == null? nullNodeString : updateExpression.toString();
+            objectNode.set("updateExpression", jsonNodeFactory1.textNode(s));
+
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+
+        return JsonUtils.prettyPrint(objectNode);
     }
 }
