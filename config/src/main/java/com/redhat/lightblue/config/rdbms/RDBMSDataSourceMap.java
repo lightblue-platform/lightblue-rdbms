@@ -94,4 +94,43 @@ public class RDBMSDataSourceMap implements RDBMSDataSourceResolver {
         return ds;
     }
 
+    public Map<String, DataSourceConfiguration> getDatasources() {
+        return datasources;
+    }
+
+    public Map<String, DataSourceConfiguration> getDatabases() {
+        return databases;
+    }
+
+    public Map<String, DataSource> getDbMap() {
+        return dbMap;
+    }
+
+    public Map<String, DataSource> getDsMap() {
+        return dsMap;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RDBMSDataSourceMap that = (RDBMSDataSourceMap) o;
+
+        if (databases != null ? !databases.equals(that.databases) : that.databases != null) return false;
+        if (datasources != null ? !datasources.equals(that.datasources) : that.datasources != null) return false;
+        if (dbMap != null ? !dbMap.equals(that.dbMap) : that.dbMap != null) return false;
+        if (dsMap != null ? !dsMap.equals(that.dsMap) : that.dsMap != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = datasources != null ? datasources.hashCode() : 0;
+        result = 31 * result + (databases != null ? databases.hashCode() : 0);
+        result = 31 * result + (dbMap != null ? dbMap.hashCode() : 0);
+        result = 31 * result + (dsMap != null ? dsMap.hashCode() : 0);
+        return result;
+    }
 }
