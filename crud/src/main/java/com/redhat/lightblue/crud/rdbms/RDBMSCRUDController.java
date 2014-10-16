@@ -60,7 +60,7 @@ public class RDBMSCRUDController implements CRUDController {
     @Override
     public CRUDInsertionResponse insert(CRUDOperationContext crudOperationContext, Projection projection) {
         LOGGER.debug("insert() start");
-        Error.push("insert call");
+        Error.push("insert");
         //crudOperationContext.getDocuments(); // input? or maybe the projection mapping the values to be processed
         CRUDInsertionResponse response = new CRUDInsertionResponse();
         int n = 0;
@@ -93,7 +93,7 @@ public class RDBMSCRUDController implements CRUDController {
     @Override
     public CRUDSaveResponse save(CRUDOperationContext crudOperationContext, boolean upsert, Projection projection) {
         LOGGER.debug("save() start");
-        Error.push("save update");
+        Error.push("save");
 
         CRUDSaveResponse response = new CRUDSaveResponse();
         int n = 0;
@@ -132,7 +132,7 @@ public class RDBMSCRUDController implements CRUDController {
             throw new IllegalArgumentException("No queryExpression informed");
         }
         LOGGER.debug("update start: q:{} u:{} p:{}", queryExpression, updateExpression, projection);
-        Error.push("update call");
+        Error.push("update");
 
         CRUDUpdateResponse response = new CRUDUpdateResponse();
 
@@ -164,7 +164,7 @@ public class RDBMSCRUDController implements CRUDController {
             throw new IllegalArgumentException("No queryExpression informed");
         }
         LOGGER.debug("delete start: q:{}", queryExpression);
-        Error.push("delete call");
+        Error.push("delete");
 
         CRUDDeleteResponse response = new CRUDDeleteResponse();
 
@@ -203,7 +203,7 @@ public class RDBMSCRUDController implements CRUDController {
             throw new IllegalArgumentException("No projection informed");
         }
         LOGGER.debug("find start: q:{} p:{} sort:{} from:{} to:{}", queryExpression, projection, sort, from, to);
-        Error.push("find call");
+        Error.push("find");
         CRUDFindResponse response = new CRUDFindResponse();
 
         try {
