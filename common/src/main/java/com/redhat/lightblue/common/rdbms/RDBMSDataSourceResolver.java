@@ -21,9 +21,17 @@ package com.redhat.lightblue.common.rdbms;
 import javax.sql.DataSource;
 
 /**
- *
+ * This interface helps to decouple the classes that needs its implementation to the implementation itself. This class is responsible to get a DataSource.
  * @author lcestari
  */
 public interface RDBMSDataSourceResolver {
+
+    /**
+     * Find and get the DataSource that matches the requirements give by the RDBMSDataStore parameter
+     * @param store
+     *  The objects holds the parameters to find the right DataSource
+     * @return
+     *  The DataSource expected by the given RDBMSDataStore object or null or an Exception if something goes wrong
+     */
     public DataSource get(RDBMSDataStore store);
 }
