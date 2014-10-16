@@ -18,9 +18,9 @@
  */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.rdbms.enums.OpOperators;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
 import com.redhat.lightblue.util.Path;
 
 public class IfFieldCheckField extends If<If, If> {
@@ -58,13 +58,13 @@ public class IfFieldCheckField extends If<If, If> {
     @Override
     public <T> void convert(MetadataParser<T> p, Object lastArrayNode, T node) {
         if (field == null || field.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No field informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No field informed");
         }
         if (op == null || op.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No op informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No op informed");
         }
         if (rfield == null || rfield.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No rfield informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No rfield informed");
         }
         T s = p.newNode();
 
@@ -91,13 +91,13 @@ public class IfFieldCheckField extends If<If, If> {
             String path1 = p.getStringProperty(pathpath, "field");
             String path2 = p.getStringProperty(pathpath, "rfield");
             if (path1 == null || path1.isEmpty()) {
-                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "fieldCheckField: field not informed");
+                throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "fieldCheckField: field not informed");
             }
             if (path2 == null || path2.isEmpty()) {
-                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "fieldCheckField: rfield not informed");
+                throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "fieldCheckField: rfield not informed");
             }
             if (conditional == null || conditional.isEmpty()) {
-                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "fieldCheckField: op not informed");
+                throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "fieldCheckField: op not informed");
             }
             ((IfFieldCheckField) x).setField(new Path(path1));
             ((IfFieldCheckField) x).setRfield(new Path(path2));

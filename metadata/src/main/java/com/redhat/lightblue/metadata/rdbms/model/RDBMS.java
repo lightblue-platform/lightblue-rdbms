@@ -18,12 +18,13 @@
 */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.rdbms.converter.RootConverter;
 import com.redhat.lightblue.metadata.rdbms.enums.DialectOperators;
 import com.redhat.lightblue.metadata.rdbms.enums.LightblueOperators;
 import com.redhat.lightblue.metadata.rdbms.enums.LoopOperators;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
+
 
 public class RDBMS implements RootConverter {
 
@@ -41,7 +42,7 @@ public class RDBMS implements RootConverter {
         T rdbms = p.newNode();
 
         if (this.getDelete() == null && this.getFetch() == null && this.getInsert() == null && this.getSave() == null && this.getUpdate() == null) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No operation informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No operation informed");
         }
 
         if (this.getDelete() != null) {
@@ -60,7 +61,7 @@ public class RDBMS implements RootConverter {
             this.getUpdate().convert(p, rdbms);
         }
         if (dialect == null) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No dialect informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No dialect informed");
         }
         p.putString(rdbms, "dialect", dialect);
         this.getSQLMapping().convert(p, rdbms);

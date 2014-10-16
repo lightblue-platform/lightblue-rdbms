@@ -20,7 +20,7 @@ package com.redhat.lightblue.metadata.rdbms.model;
 
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.rdbms.converter.SimpleConverter;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,7 +74,7 @@ public class Join implements SimpleConverter {
 
     private <T> void convertTables(MetadataParser<T> p, Object array) {
         if (this.tables == null || this.tables.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Missing tables field");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "Missing tables field");
         }
         for (Table t : this.tables) {
             t.convert(p, array);
@@ -83,7 +83,7 @@ public class Join implements SimpleConverter {
 
     private <T> void convertProjectionMappings(MetadataParser<T> p, Object array) {
         if (this.projectionMappings == null || this.projectionMappings.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Missing projectionMappings field");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "Missing projectionMappings field");
         }
         for (ProjectionMapping pm : this.projectionMappings) {
             pm.convert(p, array);
@@ -93,7 +93,7 @@ public class Join implements SimpleConverter {
     private <T> List<Table> parseTables(MetadataParser<T> p, List<T> tst) {
         List<Table> r = new ArrayList<>();
         if (tst == null || tst.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No tables informed for Join");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No tables informed for Join");
         }
         for (T t : tst) {
             Table x = new Table();
@@ -106,7 +106,7 @@ public class Join implements SimpleConverter {
     private <T> List<ProjectionMapping> parseProjectionMappings(MetadataParser<T> p, List<T> pmsT) {
         List<ProjectionMapping> r = new ArrayList<>();
         if (pmsT == null || pmsT.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No projectionMappings informed for Join");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No projectionMappings informed for Join");
         }
         for (T t : pmsT) {
             ProjectionMapping x = new ProjectionMapping();

@@ -39,6 +39,9 @@ public final class RDBMSConstants {
     public static final String NO_FIELD ="rdbms:NotMappedField";
     public static final String INV_FIELD ="rdbms:InvalidField";
     public static final String ERR_SUP_QUERY = "rdbms:NoSupportedQuery";
+    public static final String ERR_FIELD_REQUIRED = "rdbms-metadata:FieldRequired";
+    public static final String ERR_WRONG_ROOT_NODE_NAME = "rdbms-metadata:WrongRootNodeName";
+    public static final String ERR_WRONG_FIELD = "rdbms-metadata:WrongField";
 
     private RDBMSConstants() {
     }

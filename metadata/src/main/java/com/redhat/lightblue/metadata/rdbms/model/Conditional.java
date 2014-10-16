@@ -18,8 +18,8 @@
  */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
 
 import java.util.List;
 
@@ -64,10 +64,10 @@ public class Conditional extends Expression {
     @Override
     public <T> void convert(MetadataParser<T> p, Object expressionsNode) {
         if (anIf == null) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No if informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No if informed");
         }
         if (then == null) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No then informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No then informed");
         }
         T eT = p.newNode();
         T iT = p.newNode();
