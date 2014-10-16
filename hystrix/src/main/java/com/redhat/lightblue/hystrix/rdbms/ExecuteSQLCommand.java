@@ -28,26 +28,26 @@ import com.redhat.lightblue.metadata.rdbms.converter.RDBMSUtilsMetadata;
 import com.redhat.lightblue.metadata.rdbms.converter.SelectStmt;
 import java.util.List;
 
-public class ExecuteUpdateCommand<T> extends HystrixCommand<Void> {
+public class ExecuteSQLCommand<T> extends HystrixCommand<Void> {
 
     private final RDBMSContext<T> rdbmsContext;
     private List<SelectStmt> inputStmt;
 
-    public ExecuteUpdateCommand(RDBMSContext<T> rdbmsContext) {
+    public ExecuteSQLCommand(RDBMSContext<T> rdbmsContext) {
         this(rdbmsContext, null);
     }
 
-    public ExecuteUpdateCommand(RDBMSContext rdbmsContext, List<SelectStmt> inputStmt) {
+    public ExecuteSQLCommand(RDBMSContext rdbmsContext, List<SelectStmt> inputStmt) {
         this(rdbmsContext, inputStmt, null);
     }
 
     /**
      * @param threadPoolKey OPTIONAL defaults to groupKey value
      */
-    public ExecuteUpdateCommand(RDBMSContext<T> rdbmsContext, List<SelectStmt> inputStmt, String threadPoolKey) {
-        super(HystrixCommand.Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(ExecuteUpdateCommand.class.getSimpleName()))
-                .andCommandKey(HystrixCommandKey.Factory.asKey(ExecuteUpdateCommand.class.getSimpleName()))
-                .andThreadPoolKey(HystrixThreadPoolKey.Factory.asKey(threadPoolKey == null ? ExecuteUpdateCommand.class.getSimpleName() : threadPoolKey)));
+    public ExecuteSQLCommand(RDBMSContext<T> rdbmsContext, List<SelectStmt> inputStmt, String threadPoolKey) {
+        super(HystrixCommand.Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(ExecuteSQLCommand.class.getSimpleName()))
+                .andCommandKey(HystrixCommandKey.Factory.asKey(ExecuteSQLCommand.class.getSimpleName()))
+                .andThreadPoolKey(HystrixThreadPoolKey.Factory.asKey(threadPoolKey == null ? ExecuteSQLCommand.class.getSimpleName() : threadPoolKey)));
 
         this.rdbmsContext = rdbmsContext;
         this.inputStmt = inputStmt;
