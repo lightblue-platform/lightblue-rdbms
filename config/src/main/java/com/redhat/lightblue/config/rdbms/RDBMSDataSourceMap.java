@@ -18,14 +18,22 @@
  */
 package com.redhat.lightblue.config.rdbms;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.rdbms.RDBMSDataSourceResolver;
 import com.redhat.lightblue.common.rdbms.RDBMSDataStore;
 import com.redhat.lightblue.config.DataSourceConfiguration;
 import com.redhat.lightblue.config.DataSourcesConfiguration;
+
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import javax.sql.DataSource;
+
+import com.redhat.lightblue.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,5 +140,47 @@ public class RDBMSDataSourceMap implements RDBMSDataSourceResolver {
         result = 31 * result + (dbMap != null ? dbMap.hashCode() : 0);
         result = 31 * result + (dsMap != null ? dsMap.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        JsonNodeFactory jsonNodeFactory = JsonNodeFactory.withExactBigDecimals(true);
+
+        ObjectNode root = jsonNodeFactory.objectNode();
+        ObjectNode datasourcesNode = jsonNodeFactory.objectNode();
+        ObjectNode databasesNode = jsonNodeFactory.objectNode();
+        ObjectNode dbMapNode = jsonNodeFactory.objectNode();
+        ObjectNode dsMapNode = jsonNodeFactory.objectNode();
+
+        root.set("datasources",datasourcesNode);
+        root.set("databases",databasesNode);
+        root.set("dbMap",dbMapNode);
+        root.set("dsMap",dsMapNode);
+
+        if(datasources != null) {
+            for(Map.Entry<String,DataSourceConfiguration> a : datasources.entrySet()){
+                datasourcesNode.set(a.getKey(),jsonNodeFactory.textNode(a.getValue().toString()));
+            }
+        }
+
+        if(databases != null) {
+            for(Map.Entry<String,DataSourceConfiguration> a : databases.entrySet()){
+                databasesNode.set(a.getKey(),jsonNodeFactory.textNode(a.getValue().toString()));
+            }
+        }
+
+        if(dbMap != null) {
+            for(Map.Entry<String, DataSource> a : dbMap.entrySet()){
+                dbMapNode.set(a.getKey(),jsonNodeFactory.textNode(a.getValue().toString()));
+            }
+        }
+
+        if(dsMap != null) {
+            for(Map.Entry<String, DataSource> a : dsMap.entrySet()){
+                dsMapNode.set(a.getKey(),jsonNodeFactory.textNode(a.getValue().toString()));
+            }
+        }
+
+        return JsonUtils.prettyPrint(root);
     }
 }

@@ -18,6 +18,13 @@
  */
 package com.redhat.lightblue.metadata.rdbms.converter;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.redhat.lightblue.util.JsonUtils;
+
+import java.io.IOException;
+
 /**
  * Created by lcestari on 9/10/14.
  */
@@ -52,5 +59,20 @@ public class Range {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public String toString() {
+        JsonNodeFactory jsonNodeFactory = JsonNodeFactory.withExactBigDecimals(true);
+
+        ObjectNode objectNode = jsonNodeFactory.objectNode();
+
+        JsonNode jsonNode = from == null? jsonNodeFactory.nullNode() : jsonNodeFactory.numberNode(from);
+        objectNode.set("from", jsonNode);
+
+        jsonNode = to == null? jsonNodeFactory.nullNode() : jsonNodeFactory.numberNode(to);
+        objectNode.set("to", jsonNode);
+
+        return JsonUtils.prettyPrint(objectNode);
     }
 }

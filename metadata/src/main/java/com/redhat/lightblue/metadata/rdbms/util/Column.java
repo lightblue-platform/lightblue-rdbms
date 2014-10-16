@@ -1,5 +1,10 @@
 package com.redhat.lightblue.metadata.rdbms.util;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.redhat.lightblue.util.JsonUtils;
+
 import java.sql.Types;
 
 /**
@@ -73,5 +78,32 @@ public class Column {
 
     public void setTemp(boolean temp) {
         this.temp = temp;
+    }
+
+    @Override
+    public String toString() {
+        JsonNodeFactory jsonNodeFactory = JsonNodeFactory.withExactBigDecimals(true);
+
+        ObjectNode objectNode = jsonNodeFactory.objectNode();
+
+        JsonNode jsonNode = jsonNodeFactory.numberNode(position);
+        objectNode.set("position", jsonNode);
+
+        jsonNode = name == null? jsonNodeFactory.nullNode() : jsonNodeFactory.textNode(name);
+        objectNode.set("name", jsonNode);
+
+        jsonNode = alias == null? jsonNodeFactory.nullNode() : jsonNodeFactory.textNode(alias);
+        objectNode.set("alias", jsonNode);
+
+        jsonNode = clazz == null? jsonNodeFactory.nullNode() : jsonNodeFactory.textNode(clazz);
+        objectNode.set("clazz", jsonNode);
+
+        jsonNode = jsonNodeFactory.numberNode(type);
+        objectNode.set("type", jsonNode);
+
+        jsonNode = jsonNodeFactory.booleanNode(temp);
+        objectNode.set("temp", jsonNode);
+
+        return JsonUtils.prettyPrint(objectNode);
     }
 }
