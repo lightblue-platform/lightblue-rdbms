@@ -1,72 +1,31 @@
 package com.redhat.lightblue.hystrix.rdbms;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.Mongo;
-
-import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.rdbms.converter.RDBMSContext;
 import com.redhat.lightblue.metadata.rdbms.converter.RowMapper;
 import com.redhat.lightblue.metadata.rdbms.converter.SelectStmt;
 import com.redhat.lightblue.metadata.rdbms.converter.Translator;
 import com.redhat.lightblue.metadata.rdbms.util.Column;
-import com.redhat.lightblue.util.JsonUtils;
-import static com.redhat.lightblue.util.test.FileUtil.readFile;
-import de.flapdoodle.embed.mongo.Command;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
-import de.flapdoodle.embed.process.config.IRuntimeConfig;
-import de.flapdoodle.embed.process.config.io.ProcessOutput;
-import de.flapdoodle.embed.process.io.IStreamProcessor;
-import de.flapdoodle.embed.process.io.Processors;
-import de.flapdoodle.embed.process.runtime.Network;
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.json.JSONException;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
-import java.net.URLClassLoader;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import javax.inject.Inject;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
 
-import junit.framework.*;
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.EmptyAsset;
-import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import org.json.JSONException;
-import org.junit.*;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.skyscreamer.jsonassert.JSONAssert;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class ExecuteSQLCommandTest {
 

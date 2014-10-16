@@ -99,6 +99,10 @@ public class RDBMSDataSourceConfiguration implements DataSourceConfiguration {
         return ds;
     }
 
+    public Map<String, String> getDataSourceJDNIMap() {
+        return dataSourceJDNIMap;
+    }
+
     public List<String> getDataSourceName() {
         return new ArrayList(dataSourceJDNIMap.keySet());
     }
