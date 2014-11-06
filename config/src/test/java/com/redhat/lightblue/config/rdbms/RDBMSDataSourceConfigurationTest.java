@@ -1,19 +1,22 @@
 package com.redhat.lightblue.config.rdbms;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.redhat.lightblue.metadata.rdbms.impl.RDBMSDataStoreParser;
-import com.redhat.lightblue.util.JsonUtils;
-import com.redhat.lightblue.util.test.FileUtil;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import java.io.InputStreamReader;
-
-import static org.junit.Assert.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.redhat.lightblue.metadata.rdbms.impl.RDBMSDataStoreParser;
+import com.redhat.lightblue.util.JsonUtils;
+import com.redhat.lightblue.util.test.FileUtil;
 
 public class RDBMSDataSourceConfigurationTest {
 
@@ -67,5 +70,32 @@ public class RDBMSDataSourceConfigurationTest {
         assertEquals(test.toString(),cut.toString());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testInitializeFromJson_InvalidMetadataDataStoreParser() throws IOException{
+        JsonNode node = JsonUtils.json("{\"metadataDataStoreParser\":\"fakeValue\"}");
+
+        new RDBMSDataSourceConfiguration().initializeFromJson(node);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testInitializeFromJson_ConnectionNotFound() throws IOException{
+        JsonNode emptyNode = JsonUtils.json("{}");
+
+        new RDBMSDataSourceConfiguration().initializeFromJson(emptyNode);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testInitializeFromJson_DatasourceNotFound() throws IOException{
+        JsonNode emptyNode = JsonUtils.json("{\"connections\":[{\"JNDI\":\"some made up value\"}]}");
+
+        new RDBMSDataSourceConfiguration().initializeFromJson(emptyNode);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testInitializeFromJson_JNDINotFound() throws IOException{
+        JsonNode emptyNode = JsonUtils.json("{\"connections\":[{\"datasourceName\":\"some made up value\"}]}");
+
+        new RDBMSDataSourceConfiguration().initializeFromJson(emptyNode);
+    }
 
 }
