@@ -29,6 +29,7 @@ import com.redhat.lightblue.eval.Projector;
 import com.redhat.lightblue.metadata.EntityInfo;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.Metadata;
+import com.redhat.lightblue.metadata.MetadataListener;
 import com.redhat.lightblue.metadata.rdbms.model.RDBMS;
 import com.redhat.lightblue.query.Projection;
 import com.redhat.lightblue.query.QueryExpression;
@@ -225,14 +226,10 @@ public class RDBMSCRUDController implements CRUDController {
         return response;
     }
 
-    @Override
-    public void updateEntityInfo(Metadata md, EntityInfo ei) {
-
-    }
 
     @Override
-    public void newSchema(Metadata md, EntityMetadata emd) {
-
+    public MetadataListener getMetadataListener() {
+        return null;
     }
 
     public JsonNodeFactory getNodeFactory() {
