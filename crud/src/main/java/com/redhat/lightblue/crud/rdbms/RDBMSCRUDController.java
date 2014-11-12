@@ -36,6 +36,7 @@ import com.redhat.lightblue.query.QueryExpression;
 import com.redhat.lightblue.query.Sort;
 import com.redhat.lightblue.query.UpdateExpression;
 import com.redhat.lightblue.util.Error;
+import com.redhat.lightblue.util.JsonDoc;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -231,6 +232,9 @@ public class RDBMSCRUDController implements CRUDController {
     public MetadataListener getMetadataListener() {
         return null;
     }
+
+    @Override
+    public void updatePredefinedFields(CRUDOperationContext ctx,JsonDoc doc) {}
 
     public JsonNodeFactory getNodeFactory() {
         return nodeFactory;
