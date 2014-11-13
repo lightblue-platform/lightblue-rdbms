@@ -7,44 +7,44 @@
         }
     },
     "schema": {
-    	"name": "test"
+        "name": "test"
     },
     "rdbms": {
-    	"dialect": "oracle",
-    	"delete": {
-    		"bindings": {
-    			"in":[
-    				{
-    					"column": "id",
-    					"field": "employeeid"
-    				}
-    			]
-    		},
-    		"expressions": [
-    			{
-    				"statement": {
-    					"type": "delete",
-    					"sql": "DELETE FROM employee"
-    				}
-    			}
-    		]
-    	},
-    	"SQLMapping": {
-    		"joins": [{
-    				"tables": [{"name": "test"}],
-		    		"projectionMappings": [{
-						"column": "id",
-						"field": "employeeid"
-		        		}
-		        	]
-    			}
-    		],
-    		"columnToFieldMap": [{
-				"table": "test",
-				"column": "id",
-				"field": "employeeid"
-    			}
-    		]
-    	}
+        "dialect": "oracle",
+        "delete": {
+            "bindings": {
+                "in":[
+                    {
+                        "column": "id",
+                        "field": "employeeid"
+                    }
+                ]
+            },
+            "expressions": [
+                {
+                    "statement": {
+                        "type": "delete",
+                        "sql": "DELETE FROM employee"
+                    }
+                }
+            ]
+        },
+        "SQLMapping": {
+            "joins": [{
+                    "tables": [{"name": "test"}],
+                    "projectionMappings": [{
+                        "column": "id",
+                        "field": "employeeid"
+                        }
+                    ]
+                }
+            ],
+            "columnToFieldMap": [{
+                "table": "test",
+                "column": "id",
+                "field": "employeeid"
+                }
+            ]
+        }
     }
 }
