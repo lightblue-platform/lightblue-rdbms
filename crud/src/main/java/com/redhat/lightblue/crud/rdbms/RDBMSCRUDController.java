@@ -29,12 +29,14 @@ import com.redhat.lightblue.eval.Projector;
 import com.redhat.lightblue.metadata.EntityInfo;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.metadata.Metadata;
+import com.redhat.lightblue.metadata.MetadataListener;
 import com.redhat.lightblue.metadata.rdbms.model.RDBMS;
 import com.redhat.lightblue.query.Projection;
 import com.redhat.lightblue.query.QueryExpression;
 import com.redhat.lightblue.query.Sort;
 import com.redhat.lightblue.query.UpdateExpression;
 import com.redhat.lightblue.util.Error;
+import com.redhat.lightblue.util.JsonDoc;
 import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -225,15 +227,14 @@ public class RDBMSCRUDController implements CRUDController {
         return response;
     }
 
-    @Override
-    public void updateEntityInfo(Metadata md, EntityInfo ei) {
 
+    @Override
+    public MetadataListener getMetadataListener() {
+        return null;
     }
 
     @Override
-    public void newSchema(Metadata md, EntityMetadata emd) {
-
-    }
+    public void updatePredefinedFields(CRUDOperationContext ctx,JsonDoc doc) {}
 
     public JsonNodeFactory getNodeFactory() {
         return nodeFactory;

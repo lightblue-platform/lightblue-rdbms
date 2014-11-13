@@ -18,11 +18,12 @@
  */
 package com.redhat.lightblue.metadata.rdbms.model;
 
-import com.redhat.lightblue.metadata.parser.MetadataParser;
-import com.redhat.lightblue.metadata.rdbms.converter.SimpleConverter;
-import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
+import com.redhat.lightblue.metadata.parser.MetadataParser;
+import com.redhat.lightblue.metadata.rdbms.converter.SimpleConverter;
 
 /**
  *
@@ -42,7 +43,7 @@ public class Join implements SimpleConverter {
         String jts = p.getStringProperty(t, "joinTablesStatement");
         Object needDistinct1 = p.getValueProperty(t, "needDistinct");
         if(needDistinct1 != null) {
-            Boolean needDistinct = (Boolean) needDistinct1;
+            this.needDistinct = (Boolean) needDistinct1;
         }
         List<T> pmsT = p.getObjectList(t, "projectionMappings");
         List<ProjectionMapping> pms = parseProjectionMappings(p, pmsT);
@@ -50,8 +51,6 @@ public class Join implements SimpleConverter {
         this.tables = ts;
         this.joinTablesStatement = jts;
         this.projectionMappings = pms;
-        this.needDistinct = needDistinct;
-        
     }
 
     @Override
