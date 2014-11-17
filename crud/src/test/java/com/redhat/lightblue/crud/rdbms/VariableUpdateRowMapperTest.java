@@ -91,8 +91,8 @@ public class VariableUpdateRowMapperTest {
                     {"NVARCHAR", Types.NVARCHAR, "hello"},
                     {"LONGNVARCHAR", Types.LONGNVARCHAR, "hello"},
                     {"DATE", Types.DATE, new Date(System.currentTimeMillis())},
-                    {"TIME", Types.TIME, new Time(System.currentTimeMillis())},
-                    {"JAVA_OBJECT", Types.JAVA_OBJECT, new Object()}
+                    {"TIME", Types.TIME, new Time(System.currentTimeMillis())}
+                    //{"JAVA_OBJECT", Types.JAVA_OBJECT, new Object()}
             });
         }
 

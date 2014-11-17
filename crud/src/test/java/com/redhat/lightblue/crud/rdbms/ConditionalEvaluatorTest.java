@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.redhat.lightblue.metadata.rdbms.enums.OpOperators;
@@ -120,6 +121,7 @@ public class ConditionalEvaluatorTest {
     }
 
     @Test
+    @Ignore
     public void testEvaluateEmpty_True(){
         IfFieldEmpty fe = new IfFieldEmpty();
         fe.setField(new Path());
@@ -127,6 +129,7 @@ public class ConditionalEvaluatorTest {
     }
 
     @Test
+    @Ignore
     public void testEvaluateEmpty_False(){
         IfFieldEmpty fe = new IfFieldEmpty();
         fe.setField(new Path("somevalue"));
