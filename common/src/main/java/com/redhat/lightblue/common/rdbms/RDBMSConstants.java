@@ -19,11 +19,13 @@
 package com.redhat.lightblue.common.rdbms;
 
 /**
+ *  This class have the static error code used in different parts of the RDBMS module to describe something unexpected
  *
- * @author nmalik
+ * @author lcestari
  */
 public final class RDBMSConstants {
 
+    /* The constants below represent the error code  */
     public static final String ERR_DATASOURCE_NOT_FOUND = "rdbms:DatasourceNotFound";
     public static final String ERR_GET_CONNECTION_FAILED = "rdbms-util:GetConnectionFailed";
     public static final String ERR_GET_STATEMENT_FAILED = "rdbms:GetStatementFailed";
@@ -39,7 +41,11 @@ public final class RDBMSConstants {
     public static final String NO_FIELD ="rdbms:NotMappedField";
     public static final String INV_FIELD ="rdbms:InvalidField";
     public static final String ERR_SUP_QUERY = "rdbms:NoSupportedQuery";
+    public static final String ERR_FIELD_REQUIRED = "rdbms-metadata:FieldRequired";
+    public static final String ERR_WRONG_ROOT_NODE_NAME = "rdbms-metadata:WrongRootNodeName";
+    public static final String ERR_WRONG_FIELD = "rdbms-metadata:WrongField";
 
+    /* This class just hold the constants together, it doesn't need to be instantiated  */
     private RDBMSConstants() {
     }
 }

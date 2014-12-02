@@ -18,10 +18,10 @@
  */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.rdbms.converter.ComplexConverter;
 import com.redhat.lightblue.metadata.rdbms.parser.SimpleParser;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +47,7 @@ public abstract class If<Z extends If, N extends If> implements ComplexConverter
                     }
                     n = n.next();
                 }
-                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_WRONG_FIELD, "No valid if field was set ->" + node.toString());
+                throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_WRONG_FIELD, "No valid if field was set ->" + node.toString());
             }
         };
 

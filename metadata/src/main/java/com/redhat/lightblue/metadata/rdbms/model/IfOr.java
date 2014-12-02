@@ -18,15 +18,15 @@
  */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
 import java.util.List;
 
 public class IfOr extends If<If, If> {
     @Override
     public <T> void convert(MetadataParser<T> p, Object lastArrayNode, T node) {
         if (getConditions() == null || getConditions().size() < 2) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "or/any doesn't have enough conditionals");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "or/any doesn't have enough conditionals");
         }
         Object eT;
         if (lastArrayNode == null) {

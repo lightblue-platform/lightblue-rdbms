@@ -18,9 +18,9 @@
  */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.rdbms.enums.OpOperators;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
 import com.redhat.lightblue.util.Path;
 
 public class IfFieldCheckValue extends If<If, If> {
@@ -58,13 +58,13 @@ public class IfFieldCheckValue extends If<If, If> {
     @Override
     public <T> void convert(MetadataParser<T> p, Object lastArrayNode, T node) {
         if (field == null || field.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No field informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No field informed");
         }
         if (op == null || op.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No op informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No op informed");
         }
         if (value == null || value.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No value informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No value informed");
         }
         T s = p.newNode();
 
@@ -91,13 +91,13 @@ public class IfFieldCheckValue extends If<If, If> {
             String valueString = p.getStringProperty(pathvalue, "value");
             String opString = p.getStringProperty(pathvalue, "op");
             if (fieldString == null || fieldString.isEmpty()) {
-                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "fieldCheckValue: field not informed");
+                throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "fieldCheckValue: field not informed");
             }
             if (valueString == null || valueString.isEmpty()) {
-                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "fieldCheckValue: value not informed");
+                throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "fieldCheckValue: value not informed");
             }
             if (opString == null || opString.isEmpty()) {
-                throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "fieldCheckValue: op not informed");
+                throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "fieldCheckValue: op not informed");
             }
             ((IfFieldCheckValue) x).setField(new Path(fieldString));
             ((IfFieldCheckValue) x).setValue(valueString);

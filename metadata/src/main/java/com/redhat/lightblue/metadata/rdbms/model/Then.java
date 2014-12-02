@@ -18,10 +18,10 @@
  */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.rdbms.enums.LoopOperators;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.rdbms.converter.ComplexConverter;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
 
 import java.util.List;
 
@@ -56,7 +56,7 @@ public class Then implements ComplexConverter {
     @Override
     public <T> void convert(MetadataParser<T> p, Object lastArrayNode, T node) {
         if ((loopOperator == null || loopOperator.isEmpty()) && (expressions == null || expressions.isEmpty())) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No fields informed for " + getName());
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No fields informed for " + getName());
         }
         if (loopOperator != null) {
             p.putString(node, getName(), loopOperator);

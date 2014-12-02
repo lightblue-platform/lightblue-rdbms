@@ -18,8 +18,8 @@
  */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
 import com.redhat.lightblue.util.Path;
 
 import java.util.List;
@@ -47,10 +47,10 @@ public class ForEach extends Expression {
     @Override
     public <T> void convert(MetadataParser<T> p, Object expressionsNode) {
         if (iterateOverField == null || iterateOverField.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No foreach's iterateOverField informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No foreach's iterateOverField informed");
         }
         if (expressions == null || expressions.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "No foreach's expressions informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No foreach's expressions informed");
         }
         T eT = p.newNode();
         p.putString(eT, "iterateOverField", iterateOverField.toString());

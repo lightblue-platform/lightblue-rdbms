@@ -87,6 +87,9 @@ If lightblue enables data access across many datasources and technologies we als
 
 Each of the applications provides access to the corresponding service layer.  The point of them is provide a nicer interface to the service layer without having to deal with the service directly.  Each application can be secured independent of the service tier, as noted in the diagram.
 
+### How does RDBMS work?
+The RDBMSCRUDController (implementation of CRUDController) will be initialized if it is configured to be used to serve the Data. It will handle the lightblue operations which the rest interface provides an external agnostic interface. As the request arrives to this controller, it means that the JSON in the request was already processed, which would call the RDBMSPropertyParserImpl that will transform the RDBMS metadata found in the JSON schema of that specific version to Java objects, used during the processing. The controller will handle the security access, validation if the user can or can not use the operation requested. Then it will use the RDBMSProcessor class to process the request accordingly. The Processor will translate the initial SQL queries used as input using Translator and it will save all the information needed in the RDBMSContext. This way, the Processor will run recursive calls specified in the RDBMS metadata using the initial input to run the operations needed (evaluating conditionals and etc).
+
 ## See lightblue in action!
 * Deploy lightblue on OpenShift: [openshift-lightblue-all](https://github.com/lightblue-platform/openshift-lightblue-all)
 * Deploy lightblue with basic-auth:

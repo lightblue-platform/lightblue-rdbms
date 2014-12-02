@@ -18,9 +18,9 @@
  */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.rdbms.converter.SimpleConverter;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
 
 /**
  *
@@ -34,7 +34,7 @@ public class Table implements SimpleConverter {
     public <T> void convert(MetadataParser<T> p, Object expressionsNode) {
         T eT = p.newNode();
         if (name == null || name.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Missing name field");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "Missing name field");
         }
         p.putString(eT, "name", name);
 
@@ -50,7 +50,7 @@ public class Table implements SimpleConverter {
         String a = p.getStringProperty(t, "alias");
 
         if (n == null || n.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Missing name field");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "Missing name field");
         }
 
         name = n;

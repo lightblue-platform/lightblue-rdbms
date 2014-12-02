@@ -25,10 +25,9 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.common.rdbms.RDBMSDataStore;
 import com.redhat.lightblue.crud.DocCtx;
+import com.redhat.lightblue.hystrix.rdbms.ExecuteSQLCommand;
 import com.redhat.lightblue.metadata.rdbms.converter.DynVar;
 import com.redhat.lightblue.metadata.rdbms.converter.SelectStmt;
-import com.redhat.lightblue.crud.CRUDOperationContext;
-import com.redhat.lightblue.hystrix.rdbms.ExecuteUpdateCommand;
 import com.redhat.lightblue.metadata.rdbms.converter.RDBMSContext;
 import com.redhat.lightblue.metadata.rdbms.converter.Translator;
 import com.redhat.lightblue.metadata.rdbms.enums.ExpressionOperators;
@@ -37,7 +36,6 @@ import com.redhat.lightblue.metadata.rdbms.enums.LightblueOperators;
 import com.redhat.lightblue.metadata.rdbms.enums.LoopOperators;
 import com.redhat.lightblue.metadata.rdbms.model.*;
 import com.redhat.lightblue.metadata.rdbms.util.Column;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
 import com.redhat.lightblue.query.*;
 import com.redhat.lightblue.util.*;
 
@@ -87,7 +85,7 @@ public class RDBMSProcessor {
             List<SelectStmt> inputStmt = Translator.ORACLE.translate(rdbmsContext);
 
             rdbmsContext.setInitialInput(true);
-            new ExecuteUpdateCommand(rdbmsContext, inputStmt).execute();
+            new ExecuteSQLCommand(rdbmsContext, inputStmt).execute();
             rdbmsContext.setInitialInput(false);
 
             mapInputWithBinding(rdbmsContext);
@@ -286,7 +284,7 @@ public class RDBMSProcessor {
         String sql = s.getSQL();
         rdbmsContext.setSql(sql);
         rdbmsContext.setType(type);
-        new ExecuteUpdateCommand(rdbmsContext).execute();
+        new ExecuteSQLCommand(rdbmsContext).execute();
     }
 
     private static void recursiveThenCall( RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList, Then then) {

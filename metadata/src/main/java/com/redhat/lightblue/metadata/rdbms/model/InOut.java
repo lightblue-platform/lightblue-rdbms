@@ -18,9 +18,9 @@
  */
 package com.redhat.lightblue.metadata.rdbms.model;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.metadata.parser.MetadataParser;
 import com.redhat.lightblue.metadata.rdbms.converter.ComplexConverter;
-import com.redhat.lightblue.metadata.rdbms.util.RDBMSMetadataConstants;
 import com.redhat.lightblue.util.Path;
 
 public class InOut implements ComplexConverter {
@@ -32,7 +32,7 @@ public class InOut implements ComplexConverter {
         boolean col = this.getColumn() == null || this.getColumn().isEmpty();
         boolean path = this.getField() == null || this.getField().toString().isEmpty();
         if (col || path) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSMetadataConstants.ERR_FIELD_REQUIRED, "Invalid InOut: No column or path informed");
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "Invalid InOut: No column or path informed");
         }
         T ioT = p.newNode();
         p.putString(ioT, "column", this.getColumn());
