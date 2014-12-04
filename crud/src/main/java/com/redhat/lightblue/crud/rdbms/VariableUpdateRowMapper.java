@@ -18,16 +18,25 @@
  */
 package com.redhat.lightblue.crud.rdbms;
 
-import com.redhat.lightblue.metadata.rdbms.converter.DynVar;
-import com.redhat.lightblue.metadata.rdbms.converter.RowMapper;
-import com.redhat.lightblue.metadata.rdbms.converter.RDBMSContext;
-import com.redhat.lightblue.metadata.rdbms.util.Column;
-
-import javax.lang.model.type.NullType;
 import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.lang.model.type.NullType;
+
+import com.redhat.lightblue.metadata.rdbms.converter.DynVar;
+import com.redhat.lightblue.metadata.rdbms.converter.RDBMSContext;
+import com.redhat.lightblue.metadata.rdbms.converter.RowMapper;
+import com.redhat.lightblue.metadata.rdbms.util.Column;
 
 /**
  * Maps a row into DynVar
@@ -35,7 +44,7 @@ import java.util.List;
  * @author lcestari
  */
 public class VariableUpdateRowMapper<Void> implements RowMapper<Void> {
-    private RDBMSContext rdbmsContext;
+    private final RDBMSContext rdbmsContext;
 
     public VariableUpdateRowMapper(RDBMSContext rdbmsContext) {
         this.rdbmsContext = rdbmsContext;
@@ -47,7 +56,6 @@ public class VariableUpdateRowMapper<Void> implements RowMapper<Void> {
         ResultSetMetaData rsmd = rs.getMetaData();
         int columnCount = rsmd.getColumnCount();
         for (int i = 1; i < columnCount + 1; i++) {
-            int position = i;
             String name = rsmd.getColumnName(i);
             String alias = rsmd.getColumnLabel(i);
             String clazz = rsmd.getColumnClassName(i);

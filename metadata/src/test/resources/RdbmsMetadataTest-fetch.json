@@ -1,0 +1,50 @@
+{
+    "entityInfo": {
+        "name": "test",
+        "datastore": {
+            "backend": "rdbms",
+            "collection": "test"
+        }
+    },
+    "schema": {
+        "name": "test"
+    },
+    "rdbms": {
+        "dialect": "oracle",
+        "fetch": {
+            "bindings": {
+                "in":[
+                    {
+                        "column": "id",
+                        "field": "employeeid"
+                    }
+                ]
+            },
+            "expressions": [
+                {
+                    "statement": {
+                        "type": "select",
+                        "sql": "SELECT * FROM employee"
+                    }
+                }
+            ]
+        },
+        "SQLMapping": {
+            "joins": [{
+                    "tables": [{"name": "test"}],
+                    "projectionMappings": [{
+                        "column": "id",
+                        "field": "employeeid"
+                        }
+                    ]
+                }
+            ],
+            "columnToFieldMap": [{
+                "table": "test",
+                "column": "id",
+                "field": "employeeid"
+                }
+            ]
+        }
+    }
+}

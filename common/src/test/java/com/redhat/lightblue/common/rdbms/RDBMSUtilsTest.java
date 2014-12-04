@@ -1,16 +1,30 @@
 package com.redhat.lightblue.common.rdbms;
 
-import org.h2.jdbcx.JdbcConnectionPool;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
+import org.h2.jdbcx.JdbcConnectionPool;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class RDBMSUtilsTest {
+
+    @Rule
+    public ExpectedException expectedEx = ExpectedException.none();
+
+    @Test
+    public void testGetDatasSource_DataSourceNotFound(){
+        expectedEx.expect(com.redhat.lightblue.util.Error.class);
+        expectedEx.expectMessage("{\"objectType\":\"error\",\"context\":\"RDBMSUtils/getDataSource\",\"errorCode\":\""
+                + RDBMSConstants.ERR_DATASOURCE_NOT_FOUND
+                + "\",\"msg\":\"Need to specify class name in environment or system property, or as an applet parameter, or in an application resource file:  java.naming.factory.initial\"}");
+
+        RDBMSUtils.getDataSource("Fake Data Source that was never defined");
+    }
 
     @Test
     public void testGetDataSource() throws Exception {

@@ -1,0 +1,50 @@
+{
+    "entityInfo": {
+        "name": "test",
+        "datastore": {
+            "backend": "rdbms",
+            "collection": "test"
+        }
+    },
+    "schema": {
+        "name": "test"
+    },
+    "rdbms": {
+        "dialect": "oracle",
+        "update": {
+            "bindings": {
+                "in":[
+                    {
+                        "column": "id",
+                        "field": "employeeid"
+                    }
+                ]
+            },
+            "expressions": [
+                {
+                    "statement": {
+                        "type": "update",
+                        "sql": "UPDATE employee SET id = 2 WHERE id = 1"
+                    }
+                }
+            ]
+        },
+        "SQLMapping": {
+            "joins": [{
+                    "tables": [{"name": "test"}],
+                    "projectionMappings": [{
+                        "column": "id",
+                        "field": "employeeid"
+                        }
+                    ]
+                }
+            ],
+            "columnToFieldMap": [{
+                "table": "test",
+                "column": "id",
+                "field": "employeeid"
+                }
+            ]
+        }
+    }
+}
