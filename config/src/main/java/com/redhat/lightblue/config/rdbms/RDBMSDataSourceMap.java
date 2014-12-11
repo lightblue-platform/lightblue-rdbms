@@ -18,24 +18,21 @@
  */
 package com.redhat.lightblue.config.rdbms;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.redhat.lightblue.common.rdbms.RDBMSDataSourceResolver;
 import com.redhat.lightblue.common.rdbms.RDBMSDataStore;
-import com.redhat.lightblue.config.DataSourceConfiguration;
 import com.redhat.lightblue.config.DataSourcesConfiguration;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
-import javax.sql.DataSource;
-
 import com.redhat.lightblue.util.JsonUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -45,25 +42,26 @@ public class RDBMSDataSourceMap implements RDBMSDataSourceResolver {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RDBMSDataSourceMap.class);
 
-    private final Map<String, DataSourceConfiguration> datasources;
-    private final Map<String, DataSourceConfiguration> databases;
+    private final Map<String, RDBMSDataSourceConfiguration> datasources;
+    private final Map<String, RDBMSDataSourceConfiguration> databases;
     private final Map<String, DataSource> dbMap = new HashMap<>();
     private final Map<String, DataSource> dsMap = new HashMap<>();
 
     public RDBMSDataSourceMap(DataSourcesConfiguration ds) {
-        Map<String, DataSourceConfiguration> x = ds.getDataSourcesByType(RDBMSDataSourceConfiguration.class);
+        Map<String, RDBMSDataSourceConfiguration> x = ds.getDataSourcesByType(RDBMSDataSourceConfiguration.class);
         databases = new HashMap<>();
         datasources = new HashMap<>();
-        for (DataSourceConfiguration cfg : x.values()) {
-            String databaseName = ((RDBMSDataSourceConfiguration) cfg).getDatabaseName();
+        for (RDBMSDataSourceConfiguration cfg : x.values()) {
+            String databaseName = cfg.getDatabaseName();
             databases.put(databaseName, cfg);
-            List<String> dsList = ((RDBMSDataSourceConfiguration) cfg).getDataSourceName();
+            List<String> dsList = cfg.getDataSourceName();
             for (String s : dsList){
                 datasources.put(s, cfg);
             }
         }
     }
 
+    @Override
     public DataSource get(RDBMSDataStore store) {
         LOGGER.debug("Returning DataSource for {}", store);
         DataSource ds = null;
@@ -89,10 +87,10 @@ public class RDBMSDataSourceMap implements RDBMSDataSourceResolver {
         return ds;
     }
 
-    private DataSource getAndPut(Map<String, DataSource> mds, Map<String, DataSourceConfiguration> mdsc, String name) {
+    private DataSource getAndPut(Map<String, DataSource> mds, Map<String, RDBMSDataSourceConfiguration> mdsc, String name) {
         DataSource ds = mds.get(name);
         if (ds == null) {
-            RDBMSDataSourceConfiguration cfg = (RDBMSDataSourceConfiguration) mdsc.get(name);
+            RDBMSDataSourceConfiguration cfg = mdsc.get(name);
             if (cfg == null) {
                 throw new IllegalArgumentException("No datasource/database for " + name);
             }
@@ -102,11 +100,11 @@ public class RDBMSDataSourceMap implements RDBMSDataSourceResolver {
         return ds;
     }
 
-    public Map<String, DataSourceConfiguration> getDatasources() {
+    public Map<String, RDBMSDataSourceConfiguration> getDatasources() {
         return datasources;
     }
 
-    public Map<String, DataSourceConfiguration> getDatabases() {
+    public Map<String, RDBMSDataSourceConfiguration> getDatabases() {
         return databases;
     }
 
@@ -120,15 +118,27 @@ public class RDBMSDataSourceMap implements RDBMSDataSourceResolver {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         RDBMSDataSourceMap that = (RDBMSDataSourceMap) o;
 
-        if (databases != null ? !databases.equals(that.databases) : that.databases != null) return false;
-        if (datasources != null ? !datasources.equals(that.datasources) : that.datasources != null) return false;
-        if (dbMap != null ? !dbMap.equals(that.dbMap) : that.dbMap != null) return false;
-        if (dsMap != null ? !dsMap.equals(that.dsMap) : that.dsMap != null) return false;
+        if (databases != null ? !databases.equals(that.databases) : that.databases != null) {
+            return false;
+        }
+        if (datasources != null ? !datasources.equals(that.datasources) : that.datasources != null) {
+            return false;
+        }
+        if (dbMap != null ? !dbMap.equals(that.dbMap) : that.dbMap != null) {
+            return false;
+        }
+        if (dsMap != null ? !dsMap.equals(that.dsMap) : that.dsMap != null) {
+            return false;
+        }
 
         return true;
     }
@@ -158,13 +168,13 @@ public class RDBMSDataSourceMap implements RDBMSDataSourceResolver {
         root.set("dsMap",dsMapNode);
 
         if(datasources != null) {
-            for(Map.Entry<String,DataSourceConfiguration> a : datasources.entrySet()){
+            for(Map.Entry<String,RDBMSDataSourceConfiguration> a : datasources.entrySet()){
                 datasourcesNode.set(a.getKey(),jsonNodeFactory.textNode(a.getValue().toString()));
             }
         }
 
         if(databases != null) {
-            for(Map.Entry<String,DataSourceConfiguration> a : databases.entrySet()){
+            for(Map.Entry<String,RDBMSDataSourceConfiguration> a : databases.entrySet()){
                 databasesNode.set(a.getKey(),jsonNodeFactory.textNode(a.getValue().toString()));
             }
         }
