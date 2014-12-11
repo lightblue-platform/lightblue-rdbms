@@ -4,6 +4,7 @@ jdk:
 - oraclejdk8
 before_install:
 - cp ./settings.xml ~/.m2/
+- mvn dependency:purge-local-repository
 after_success:
 - '[[ $TRAVIS_BRANCH == "master" ]] && [[ $TRAVIS_JDK_VERSION == "openjdk7" ]] &&
   { mvn clean deploy -DskipTests; };'
