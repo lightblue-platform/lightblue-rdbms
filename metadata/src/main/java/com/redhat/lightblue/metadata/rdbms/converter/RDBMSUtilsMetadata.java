@@ -18,15 +18,24 @@
  */
 package com.redhat.lightblue.metadata.rdbms.converter;
 
-import com.redhat.lightblue.common.rdbms.RDBMSConstants;
-import com.redhat.lightblue.util.Error;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
+import com.redhat.lightblue.common.rdbms.RDBMSUtils;
+import com.redhat.lightblue.util.Error;
 
 public class RDBMSUtilsMetadata {
     private static final Logger LOGGER = LoggerFactory.getLogger(RDBMSUtilsMetadata.class);
@@ -36,7 +45,7 @@ public class RDBMSUtilsMetadata {
             return rDBMSContext.getDataSource();
         }
         if(rDBMSContext.getDataSourceName() != null && !rDBMSContext.getDataSourceName().isEmpty()) {
-            DataSource dataSource = com.redhat.lightblue.common.rdbms.RDBMSUtils.getDataSource(rDBMSContext.getDataSourceName());
+            DataSource dataSource = RDBMSUtils.getDataSource(rDBMSContext.getDataSourceName());
             rDBMSContext.setDataSource(dataSource);
             return dataSource;
         }

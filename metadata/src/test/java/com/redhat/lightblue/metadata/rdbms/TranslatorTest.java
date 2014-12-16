@@ -1,6 +1,16 @@
 package com.redhat.lightblue.metadata.rdbms;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
 import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.crud.Factory;
 import com.redhat.lightblue.crud.Operation;
@@ -11,24 +21,18 @@ import com.redhat.lightblue.metadata.SimpleField;
 import com.redhat.lightblue.metadata.rdbms.converter.RDBMSContext;
 import com.redhat.lightblue.metadata.rdbms.converter.SelectStmt;
 import com.redhat.lightblue.metadata.rdbms.converter.Translator;
-import com.redhat.lightblue.metadata.rdbms.model.*;
+import com.redhat.lightblue.metadata.rdbms.model.ColumnToField;
+import com.redhat.lightblue.metadata.rdbms.model.Join;
+import com.redhat.lightblue.metadata.rdbms.model.ProjectionMapping;
+import com.redhat.lightblue.metadata.rdbms.model.RDBMS;
+import com.redhat.lightblue.metadata.rdbms.model.SQLMapping;
+import com.redhat.lightblue.metadata.rdbms.model.Table;
 import com.redhat.lightblue.metadata.types.StringType;
 import com.redhat.lightblue.query.FieldProjection;
 import com.redhat.lightblue.query.QueryExpression;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.JsonUtils;
 import com.redhat.lightblue.util.Path;
-import org.junit.Assert;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 public class TranslatorTest {
     final String valueQuery1 = "{\"field\":\"x.\", \"op\":\"$eq\", \"rvalue\":\"stringXPTO\"}";
@@ -193,10 +197,10 @@ public class TranslatorTest {
 
     static class TestCRUD extends CRUDOperationContext {
         public TestCRUD(){
-            this(null,null,new Factory(), null,null);
+            this(null, null, new Factory(), null);
         }
-        public TestCRUD(Operation op, String entityName, Factory f, Set<String> callerRoles, List<JsonDoc> docs) {
-            super(op, entityName, f, callerRoles, docs);
+        public TestCRUD(Operation op, String entityName, Factory f, List<JsonDoc> docs) {
+            super(op, entityName, f, docs);
         }
         @Override public EntityMetadata getEntityMetadata(String entityName) {
             return null;
@@ -204,6 +208,6 @@ public class TranslatorTest {
     }
 
     private QueryExpression generateQuery(String str) throws IOException {
-        return QueryExpression.fromJson((ObjectNode) JsonUtils.json(str));
+        return QueryExpression.fromJson(JsonUtils.json(str));
     }
 }

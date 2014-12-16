@@ -1,11 +1,6 @@
 package com.redhat.lightblue.config.rdbms;
 
-import com.redhat.lightblue.common.rdbms.RDBMSDataStore;
-import com.redhat.lightblue.config.DataSourcesConfiguration;
-import org.junit.After;
-import org.junit.Test;
-
-import javax.sql.DataSource;
+import static org.junit.Assert.assertEquals;
 
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -13,22 +8,20 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.logging.Logger;
 
-import static org.junit.Assert.*;
+import javax.sql.DataSource;
+
+import org.junit.Test;
+
+import com.redhat.lightblue.common.rdbms.RDBMSDataStore;
+import com.redhat.lightblue.config.DataSourcesConfiguration;
 
 public class RDBMSDataSourceMapTest {
-
-    RDBMSDataSourceMap cut;
-
-    @After
-    public void after(){
-        cut = null;
-    }
 
     private final int NUMBER = 123098;
 
     @Test
     public void testGet() throws Exception {
-        DataSourcesConfiguration ds = new DataSourcesConfiguration();
+        DataSourcesConfiguration dsc = new DataSourcesConfiguration();
         RDBMSDataSourceConfiguration datasource = new RDBMSDataSourceConfiguration(){
             @Override
             public DataSource getDataSource(String name) {
@@ -37,13 +30,40 @@ public class RDBMSDataSourceMapTest {
         };
         datasource.setDatabaseName("testDB");
         datasource.setMetadataDataStoreParser(Class.forName("com.redhat.lightblue.metadata.rdbms.impl.RDBMSDataStoreParser"));
-        ds.add("test", datasource);
+        dsc.add("test", datasource);
         datasource.getDataSourceJDNIMap().put("test","jndi");
-        cut = new RDBMSDataSourceMap(ds);
+        RDBMSDataSourceMap dsMap = new RDBMSDataSourceMap(dsc);
         RDBMSDataStore store = new RDBMSDataStore("testDB",null);
 
-        DataSource dataSource = cut.get(store);
+        DataSource dataSource = dsMap.get(store);
         assertEquals(new StubDataSource(), dataSource);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGet_DatasourceAndDatabaseNull() throws ClassNotFoundException{
+        DataSourcesConfiguration dsc = new DataSourcesConfiguration();
+        dsc.add("test", new RDBMSDataSourceConfiguration());
+
+        RDBMSDataStore store = new RDBMSDataStore(null, null);
+        new RDBMSDataSourceMap(dsc).get(store);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGet_NoDatasourceForName() throws ClassNotFoundException{
+        DataSourcesConfiguration dsc = new DataSourcesConfiguration();
+        dsc.add("test", new RDBMSDataSourceConfiguration());
+
+        RDBMSDataStore store = new RDBMSDataStore(null, "fake");
+        new RDBMSDataSourceMap(dsc).get(store);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testGet_NoDatabaseForName() throws ClassNotFoundException{
+        DataSourcesConfiguration dsc = new DataSourcesConfiguration();
+        dsc.add("test", new RDBMSDataSourceConfiguration());
+
+        RDBMSDataStore store = new RDBMSDataStore("fake", null);
+        new RDBMSDataSourceMap(dsc).get(store);
     }
 
     private class StubDataSource implements DataSource {
@@ -57,8 +77,12 @@ public class RDBMSDataSourceMapTest {
         @Override public <T> T unwrap(Class<T> tClass) throws SQLException {return null;}
         @Override public boolean isWrapperFor(Class<?> aClass) throws SQLException {return false;}
         @Override public boolean equals(Object obj) {
-            if(obj == null) return false;
-            if (getClass() != obj.getClass()) return false;
+            if(obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
             return this.hashCode() == obj.hashCode();
         }
         @Override public int hashCode() {return NUMBER;}
