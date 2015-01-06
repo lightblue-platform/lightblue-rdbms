@@ -49,7 +49,7 @@
         <dependency>
             <groupId>com.redhat.lightblue</groupId>
             <artifactId>crud</artifactId>
-            <version>${lightblue-core.version}</version>
+            <version>1.3.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.netflix.hystrix</groupId>
