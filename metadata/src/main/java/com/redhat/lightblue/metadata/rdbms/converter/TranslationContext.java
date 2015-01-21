@@ -118,7 +118,7 @@ public class TranslationContext {
     }
 
     private void processProjection(Projection projection, List<String> resultColumns) {
-        LOGGER.debug("processProjection(projection: {}, resultColumns: {})", projection.toString(), resultColumns.toString());
+        LOGGER.debug("processProjection(projection: {}, resultColumns: {})", projection, resultColumns);
         if(projection instanceof ProjectionList){
             ProjectionList projectionList = (ProjectionList) projection;
             for (Projection projection1 : projectionList.getItems()) {

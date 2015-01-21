@@ -387,7 +387,7 @@ public abstract class Translator {
         for (Table table : join.getTables()) {
             if(translationContext.nameOfTables.add(table.getName())){
                 LOGGER.warn("Table mentioned more than once in the same query. Possible N+1 problem");
-                LOGGER.debug("nameOfTables: {} table: {}", translationContext.nameOfTables.toString(), table.getName());
+                LOGGER.debug("nameOfTables: {} table: {}", translationContext.nameOfTables, table.getName());
             }
             if(table.getAlias() != null && !table.getAlias().isEmpty() ){
                 fromTables.add(table.getName() + " AS " + table.getAlias() );
