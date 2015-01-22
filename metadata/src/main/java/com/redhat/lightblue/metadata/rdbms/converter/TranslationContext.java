@@ -1,5 +1,16 @@
 package com.redhat.lightblue.metadata.rdbms.converter;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.metadata.FieldTreeNode;
@@ -9,16 +20,21 @@ import com.redhat.lightblue.metadata.rdbms.model.ColumnToField;
 import com.redhat.lightblue.metadata.rdbms.model.InOut;
 import com.redhat.lightblue.metadata.rdbms.model.Join;
 import com.redhat.lightblue.metadata.rdbms.model.ProjectionMapping;
-import com.redhat.lightblue.query.*;
-import com.redhat.lightblue.util.*;
+import com.redhat.lightblue.query.ArrayQueryMatchProjection;
+import com.redhat.lightblue.query.ArrayRangeProjection;
+import com.redhat.lightblue.query.FieldProjection;
+import com.redhat.lightblue.query.Projection;
+import com.redhat.lightblue.query.ProjectionList;
+import com.redhat.lightblue.query.Value;
 import com.redhat.lightblue.util.Error;
-
-import java.util.*;
+import com.redhat.lightblue.util.Path;
 
 /**
 * Created by lcestari on 9/22/14.
 */
 public class TranslationContext {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TranslationContext.class);
+  
     private Translator translator;
     CRUDOperationContext crudOperationContext;
     RDBMSContext rdbmsContext;
@@ -102,6 +118,7 @@ public class TranslationContext {
     }
 
     private void processProjection(Projection projection, List<String> resultColumns) {
+        LOGGER.debug("processProjection(projection: {}, resultColumns: {})", projection, resultColumns);
         if(projection instanceof ProjectionList){
             ProjectionList projectionList = (ProjectionList) projection;
             for (Projection projection1 : projectionList.getItems()) {

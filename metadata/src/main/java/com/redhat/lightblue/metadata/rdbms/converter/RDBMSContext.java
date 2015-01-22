@@ -55,7 +55,7 @@ public class RDBMSContext<T> {
     private Connection connection;
     private PreparedStatement preparedStatement;
     private Boolean resultBoolean;
-    private Integer resultInteger;
+    private Integer resultInteger = 0;
     private RowMapper<T> rowMapper;
     private List<T> resultList;
     private RDBMS rdbms;
