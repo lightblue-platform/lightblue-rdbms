@@ -139,6 +139,10 @@ public class TranslationContext {
                     this.rdbmsContext.getSort());
             for (Path requiredField : requiredFields) {
                 String sField = Translator.translatePath(requiredField);
+                if(fieldToProjectionMap.get(sField)==null){
+                    LOGGER.debug("Field not found in the mapped projection (fieldToProjectionMap) -> Field value is \"{}\"", sField);
+                    continue;
+                }
                 String column = fieldToProjectionMap.get(sField).getColumn();
 
                 InOut in = new InOut();
