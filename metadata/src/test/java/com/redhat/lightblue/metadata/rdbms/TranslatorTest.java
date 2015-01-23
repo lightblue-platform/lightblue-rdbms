@@ -130,7 +130,7 @@ public class TranslatorTest {
         List<SelectStmt> translate = cut.translate(rdbmsContext);
         Assert.assertNotNull(translate);
         Assert.assertTrue("translate size is different than 1", translate.size() == 1);
-        String expected = "SELECT xyz.x1 FROM 123 AS xyz ,K AS w WHERE  xyz.c1 = w.c2  AND w.z1 IN ('1','2','3','4','5') ";
+        String expected = "SELECT xyz.x1 ,w.z1 FROM 123 AS xyz ,K AS w WHERE  xyz.c1 = w.c2  AND w.z1 IN ('1','2','3','4','5') ";
         Assert.assertEquals(expected,translate.get(0).generateStatement());
 
     }

@@ -132,19 +132,26 @@ public class TranslationContext {
             throw Error.get(RDBMSConstants.ERR_SUP_OPERATOR, projection.toString());
         }else if (projection instanceof FieldProjection) {
             FieldProjection fieldProjection = (FieldProjection) projection;
-            String sField = Translator.translatePath(fieldProjection.getField());
-            String column = fieldToProjectionMap.get(sField).getColumn();
+            Set<Path> requiredFields = Translator.getRequiredFields(
+                    this.rdbmsContext.getEntityMetadata(),
+                    this.rdbmsContext.getProjection(),
+                    this.rdbmsContext.getQueryExpression(),
+                    this.rdbmsContext.getSort());
+            for (Path requiredField : requiredFields) {
+                String sField = Translator.translatePath(requiredField);
+                String column = fieldToProjectionMap.get(sField).getColumn();
 
-            InOut in = new InOut();
-            InOut out = new InOut();
-            in.setColumn(column);
-            out.setColumn(column);
-            in.setField(fieldProjection.getField());
-            out.setField(fieldProjection.getField());
+                InOut in = new InOut();
+                InOut out = new InOut();
+                in.setColumn(column);
+                out.setColumn(column);
+                in.setField(fieldProjection.getField());
+                out.setField(fieldProjection.getField());
 
-            this.rdbmsContext.getIn().add(in);
-            this.rdbmsContext.getOut().add(out);
-            resultColumns.add(column);
+                this.rdbmsContext.getIn().add(in);
+                this.rdbmsContext.getOut().add(out);
+                resultColumns.add(column);
+            }
         }
     }
 
