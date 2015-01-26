@@ -130,8 +130,17 @@ public class TranslatorTest {
         List<SelectStmt> translate = cut.translate(rdbmsContext);
         Assert.assertNotNull(translate);
         Assert.assertTrue("translate size is different than 1", translate.size() == 1);
-        String expected = "SELECT xyz.x1 ,w.z1 FROM 123 AS xyz ,K AS w WHERE  xyz.c1 = w.c2  AND w.z1 IN ('1','2','3','4','5') ";
-        Assert.assertEquals(expected,translate.get(0).generateStatement());
+        String result = translate.get(0).generateStatement();
+        // test any order of select statement 's selected columns
+        String extectedHead1 = "SELECT xyz.x1 ,w.z1 ";
+        String extectedHead2 = "SELECT w.x1 ,xyz.z1 ";
+        String expectedTail = "FROM 123 AS xyz ,K AS w WHERE  xyz.c1 = w.c2  AND w.z1 IN ('1','2','3','4','5') ";
+        String comb1 =  extectedHead1 + expectedTail;
+        String comb2 =  extectedHead2 + expectedTail;
+        if(!comb1.equals(result) && !comb2.equals(result) ) {
+            String expected = comb1;
+            Assert.assertEquals(expected, result);
+        }
 
     }
 
