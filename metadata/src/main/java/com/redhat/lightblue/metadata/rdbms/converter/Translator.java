@@ -236,6 +236,31 @@ public abstract class Translator {
         }
         return fieldTreeNode1;
     }
+    public static Set<Path> getRequiredFields(EntityMetadata md,
+                                              Projection p,
+                                              QueryExpression q,
+                                              Sort s) {
+        LOGGER.debug("getRequiredFields: p={}, q={}, s={}",p,q,s);
+        Set<Path> fields=new HashSet<>();
+        FieldCursor cursor=md.getFieldCursor();
+        while(cursor.next()) {
+            Path field=cursor.getCurrentPath();
+            FieldTreeNode node=cursor.getCurrentNode();
+            if( (node instanceof ObjectField) ||
+                    (node instanceof ArrayField &&
+                            ((ArrayField)node).getElement() instanceof ObjectArrayElement) ) {
+                // include its member fields
+            } else if( (p!=null && p.isFieldRequiredToEvaluateProjection(field)) ||
+                    (q!=null && q.isRequired(field)) ||
+                    (s!=null && s.isRequired(field)) ) {
+                LOGGER.debug("{}: required",field);
+                fields.add(field);
+            } else {
+                LOGGER.debug("{}: not required", field);
+            }
+        }
+        return fields;
+    }
 
     protected static String translatePath(Path p) {
         StringBuilder stringBuilder = new StringBuilder();

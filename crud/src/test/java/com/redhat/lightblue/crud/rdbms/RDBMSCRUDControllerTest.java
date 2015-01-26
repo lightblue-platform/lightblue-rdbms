@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.crud.CRUDOperationContext;
 import com.redhat.lightblue.metadata.EntityMetadata;
 import com.redhat.lightblue.crud.Operation;
+import com.redhat.lightblue.metadata.SimpleField;
 import com.redhat.lightblue.metadata.rdbms.enums.DialectOperators;
 import com.redhat.lightblue.metadata.rdbms.enums.LightblueOperators;
 import com.redhat.lightblue.metadata.rdbms.model.*;
@@ -62,6 +63,8 @@ public class RDBMSCRUDControllerTest {
         entityMetadata.getAccess().getUpdate().setRoles(role);
 
         entityMetadata.getEntitySchema().getProperties().put("rdbms", new RDBMS());
+
+        entityMetadata.getEntitySchema().getFields().put(new SimpleField("fie"));
     }
 
     @Before
@@ -147,7 +150,8 @@ public class RDBMSCRUDControllerTest {
     @Test
     public void testFind() throws Exception {
         FieldComparisonExpression fieldComparisonExpression = new FieldComparisonExpression(new Path("fie"), BinaryComparisonOperator._eq, new Path("fie"));
-        cut.find(c, fieldComparisonExpression,new FieldProjection(new Path("fie"),true,false), null, null, null);
+        FieldProjection fie = new FieldProjection(new Path("fie"), true, false);
+        cut.find(c, fieldComparisonExpression, fie, null, null, null);
         assertNotNull(c.getErrors());
         assertTrue(c.getErrors().isEmpty());
     }
