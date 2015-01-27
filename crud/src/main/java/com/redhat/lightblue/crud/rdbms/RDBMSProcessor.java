@@ -21,6 +21,7 @@ package com.redhat.lightblue.crud.rdbms;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.common.rdbms.RDBMSDataStore;
@@ -164,24 +165,26 @@ public class RDBMSProcessor {
     }
     private static void convertProjection(RDBMSContext rdbmsContext, List<InOut> inout, DynVar dynVar) {
         List<JsonDoc> l = new ArrayList<>();
+        JsonDoc jd = new JsonDoc(new ObjectNode(rdbmsContext.getJsonNodeFactory()));
+        l.add(jd);
+
 
         for (InOut io : inout) {
             String c = io.getColumn().toString();
             List values = dynVar.getValues(c);
-            JsonDoc jd = null;
             if(values.isEmpty()){
-                jd = new JsonDoc(NullNode.getInstance());
-            }else if(values.size() > 1 ){
-                jd = new JsonDoc(new TextNode(values.get(1).toString()));
+                jd.modify(io.getField(),NullNode.getInstance(),true);
+            }else if(values.size() == 1 ){
+                jd.modify(io.getField(),new TextNode(values.get(1).toString()),true);
             }else {
                 ArrayNode doc = new ArrayNode(rdbmsContext.getJsonNodeFactory());
                 for (Object value : values) {
                     doc.add(value.toString());
                 }
-                jd = new JsonDoc(doc);
+                jd.modify(io.getField(),doc,true);
             }
-            l.add(jd);
         }
+
 
         rdbmsContext.getCrudOperationContext().addDocuments(l);
     }
