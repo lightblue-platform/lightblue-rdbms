@@ -169,19 +169,19 @@ public class RDBMSProcessor {
         l.add(jd);
 
 
-        for (InOut io : inout) {
-            String c = io.getColumn().toString();
-            List values = dynVar.getValues(c);
+        for (String key : dynVar.getKeys()) {
+            List values = dynVar.getValues(key);
             if(values.isEmpty()){
-                jd.modify(io.getField(),NullNode.getInstance(),true);
+                jd.modify(new Path(key),NullNode.getInstance(),true);
             }else if(values.size() == 1 ){
-                jd.modify(io.getField(),new TextNode(values.get(1).toString()),true);
+                Object o = values.get(0);
+                jd.modify(new Path(key),new TextNode(o.toString()),true);
             }else {
                 ArrayNode doc = new ArrayNode(rdbmsContext.getJsonNodeFactory());
                 for (Object value : values) {
                     doc.add(value.toString());
                 }
-                jd.modify(io.getField(),doc,true);
+                jd.modify(new Path(key),doc,true);
             }
         }
 
