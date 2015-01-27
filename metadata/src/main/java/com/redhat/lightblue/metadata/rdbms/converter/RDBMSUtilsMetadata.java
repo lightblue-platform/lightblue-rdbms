@@ -18,6 +18,7 @@
  */
 package com.redhat.lightblue.metadata.rdbms.converter;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -138,7 +139,7 @@ public class RDBMSUtilsMetadata {
         return ps;
     }
     enum Classes {
-        Boolean,Short,Integer,Long,Double,String,Date,Time ;
+        Boolean,Short,Integer,Long,Double,String,Date,Time,BigDecimal ;
 
     }
     public static void processDynVar(RDBMSContext context,NamedParameterStatement nps,DynVar dynVar) {
@@ -177,6 +178,9 @@ public class RDBMSUtilsMetadata {
                             break;
                         case Time:
                             nps.setTime(key, (Time) o);
+                            break;
+                        case BigDecimal:
+                            nps.setBigDecimal(key, (BigDecimal) o);
                             break;
                         default:
                             throw new IllegalStateException("State not implemented! clazz:"+clazz+" z:"+z+" clazz.getSimpleName():"+clazz.getSimpleName());

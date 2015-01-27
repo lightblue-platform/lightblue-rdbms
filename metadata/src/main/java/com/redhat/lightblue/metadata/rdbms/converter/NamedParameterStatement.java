@@ -18,6 +18,7 @@
  */
 package com.redhat.lightblue.metadata.rdbms.converter;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -139,6 +140,13 @@ public class NamedParameterStatement {
         int[] indexes = getIndexes(name);
         for (int index : indexes) {
             statement.setInt(index, value);
+        }
+    }
+
+    public void setBigDecimal(String name, BigDecimal value) throws SQLException {
+        int[] indexes = getIndexes(name);
+        for (int index : indexes) {
+            statement.setBigDecimal(index, value);
         }
     }
 
