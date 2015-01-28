@@ -272,6 +272,27 @@ public class RDBMSUtilsMetadataTest {
             RDBMSUtilsMetadata.processDynVar(context, nps, dynVar);
             assertTrue(flag.isAsserted());
         }
+
+        {
+            flag.reset();
+            final java.math.BigDecimal value = new java.math.BigDecimal(456123L);
+            final Class<?> objectClass = java.math.BigDecimal.class;
+            connection = new MyConnection();
+            connection.myPreparedStatement = new MyPreparedStatement() {
+                @Override
+                public void setBigDecimal(int parameterIndex, BigDecimal x) throws SQLException {
+                    assertEquals(1, parameterIndex);
+                    assertEquals(value, x);
+                    flag.done();
+                }
+            };
+            nps = new NamedParameterStatement(connection, ":parameter");
+            dynVar = new DynVar(context);
+            Column column = new Column(0, "parameter", "parameter", "java.math.BigDecimal", Types.DECIMAL);
+            dynVar.put(value, objectClass, column);
+            RDBMSUtilsMetadata.processDynVar(context, nps, dynVar);
+            assertTrue(flag.isAsserted());
+        }
     }
 
     private static class MyConnection implements Connection {

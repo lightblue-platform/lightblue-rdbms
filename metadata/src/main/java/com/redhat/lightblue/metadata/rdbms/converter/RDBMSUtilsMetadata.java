@@ -18,6 +18,7 @@
  */
 package com.redhat.lightblue.metadata.rdbms.converter;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -137,7 +138,7 @@ public class RDBMSUtilsMetadata {
         return ps;
     }
     enum Classes {
-        Boolean,Short,Integer,Long,Double,String,Date,Time, Bytes ;
+        Boolean,Short,Integer,Long,Double,String,Date,Time,Bytes,BigDecimal;
 
         public static Classes getEnum(String clazz){
             if("byte[]".equals(clazz)) {
@@ -190,6 +191,9 @@ public class RDBMSUtilsMetadata {
                             break;
                         case Time:
                             nps.setTime(key, (Time) o);
+                            break;
+                        case BigDecimal:
+                            nps.setBigDecimal(key, (BigDecimal) o);
                             break;
                         case Bytes:
                             nps.setBytes(key, (byte[]) o);
