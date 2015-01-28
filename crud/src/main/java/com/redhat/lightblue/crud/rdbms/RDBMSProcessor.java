@@ -163,7 +163,7 @@ public class RDBMSProcessor {
     private static void convertInputToProjection(RDBMSContext rdbmsContext) {
         convertProjection(rdbmsContext,rdbmsContext.getIn(),rdbmsContext.getInVar());
     }
-    private static void convertProjection(RDBMSContext rdbmsContext, List<InOut> inout, DynVar dynVar) {
+    public static void convertProjection(RDBMSContext rdbmsContext, List<InOut> inout, DynVar dynVar) {
         List<JsonDoc> l = new ArrayList<>();
         JsonDoc jd = new JsonDoc(new ObjectNode(rdbmsContext.getJsonNodeFactory()));
         l.add(jd);
