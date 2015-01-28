@@ -19,7 +19,6 @@
 package com.redhat.lightblue.metadata.rdbms.converter;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -185,9 +184,6 @@ public class RDBMSUtilsMetadata {
                             if(o instanceof java.util.Date) {
                                 java.util.Date o1 = (java.util.Date) o;
                                 nps.setTimestamp(key, new Timestamp(o1.getTime()));
-                            } else if (o  instanceof java.sql.Date) {
-                                java.sql.Date o2 = (java.sql.Date) o;
-                                nps.setTimestamp(key, new Timestamp(o2.getTime()));
                             } else {
                                 throw new IllegalStateException("State not implemented! clazz:"+clazz+" z:"+z+" clazz.getSimpleName():"+clazz.getSimpleName());
                             }
