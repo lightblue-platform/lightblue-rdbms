@@ -163,30 +163,53 @@ public class RDBMSProcessor {
     private static void convertInputToProjection(RDBMSContext rdbmsContext) {
         convertProjection(rdbmsContext,rdbmsContext.getIn(),rdbmsContext.getInVar());
     }
+
     public static void convertProjection(RDBMSContext rdbmsContext, List<InOut> inout, DynVar dynVar) {
         List<JsonDoc> l = new ArrayList<>();
         JsonDoc jd = new JsonDoc(new ObjectNode(rdbmsContext.getJsonNodeFactory()));
         l.add(jd);
 
-
         for (String key : dynVar.getKeys()) {
             List values = dynVar.getValues(key);
-            if(values.isEmpty()){
-                jd.modify(new Path(key),NullNode.getInstance(),true);
-            }else if(values.size() == 1 ){
-                Object o = values.get(0);
-                jd.modify(new Path(key),new TextNode(o.toString()),true);
-            }else {
-                ArrayNode doc = new ArrayNode(rdbmsContext.getJsonNodeFactory());
-                for (Object value : values) {
-                    doc.add(value.toString());
-                }
-                jd.modify(new Path(key),doc,true);
-            }
+            convertRecursion(rdbmsContext, jd, key, values, null);
         }
 
-
         rdbmsContext.getCrudOperationContext().addDocuments(l);
+    }
+
+    private static void convertRecursion(RDBMSContext rdbmsContext, JsonDoc jd, String key, Object values, ArrayNode doc) {
+        Collection c = values instanceof Collection? ((Collection)values) : null;
+        if (values == null || (c!=null && c.isEmpty()) ) {
+            if(doc == null) {
+                jd.modify(new Path(key), NullNode.getInstance(), true);
+            } else {
+                doc.add(NullNode.getInstance());
+            }
+        } else if (c!=null && c.size() > 1 ) {
+            if (doc == null) {
+                doc = new ArrayNode(rdbmsContext.getJsonNodeFactory());
+            }
+            for (Object value : c) {
+                if(value instanceof Collection){
+                    Collection cValue = (Collection) value;
+                    ArrayNode newDoc = new ArrayNode(rdbmsContext.getJsonNodeFactory());
+                    for (Object o : cValue) {
+                        convertRecursion(rdbmsContext, jd, key, o, newDoc);
+                    }
+                    doc.add(newDoc);
+                } else {
+                    doc.add(value.toString());
+                }
+            }
+            jd.modify(new Path(key),doc,true);
+        }else {
+            if(doc == null) {
+                Object o = c.iterator().next();
+                jd.modify(new Path(key),new TextNode(o.toString()),true);
+            } else {
+                doc.add(new TextNode(values.toString()));
+            }
+        }
     }
 
     private static void recursiveExpressionCall(RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList) {
