@@ -1,22 +1,31 @@
 package com.redhat.lightblue.crud.rdbms;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.redhat.lightblue.crud.CRUDOperationContext;
+import com.redhat.lightblue.crud.DocCtx;
 import com.redhat.lightblue.crud.Factory;
 import com.redhat.lightblue.crud.Operation;
 import com.redhat.lightblue.metadata.EntityMetadata;
+import com.redhat.lightblue.metadata.rdbms.converter.DynVar;
 import com.redhat.lightblue.metadata.rdbms.converter.RDBMSContext;
 import com.redhat.lightblue.metadata.rdbms.enums.OpOperators;
 import com.redhat.lightblue.metadata.rdbms.model.Bindings;
 import com.redhat.lightblue.metadata.rdbms.model.IfFieldCheckField;
 import com.redhat.lightblue.metadata.rdbms.model.RDBMS;
+import com.redhat.lightblue.metadata.rdbms.util.Column;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.Path;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -58,5 +67,59 @@ public class RDBMSProcessorTest {
         rdbmsContext.getInputMappedByField().put(i.getRfield().toString(), i.getRfield());
 
         RDBMSProcessor.evaluateConditions(i,new Bindings(),rdbmsContext);
+    }
+
+    @Test
+    public void testConvertProjectionSingleNode() throws Exception {
+        rdbmsContext.setJsonNodeFactory(JsonNodeFactory.instance);
+        assertNotNull(rdbmsContext.getJsonNodeFactory());
+        assertNotNull(rdbmsContext.getCrudOperationContext());
+
+        final Integer value = new Integer(128);
+        final Class<?> objectClass = Integer.class;
+        DynVar dynVar = new DynVar(rdbmsContext);
+        String path = "parameter";
+        Column column = new Column(0, path, path, "java.lang.Boolean", Types.INTEGER);
+        dynVar.put(value, objectClass, column);
+        RDBMSProcessor.convertProjection(rdbmsContext,null, dynVar);
+
+        JsonDoc jd = new JsonDoc(new ObjectNode(rdbmsContext.getJsonNodeFactory()));
+        jd.modify(new Path(path),new TextNode(value.toString()),true);
+        DocCtx expected =  new DocCtx(jd);
+
+        List<DocCtx> documents = rdbmsContext.getCrudOperationContext().getDocuments();
+        assertEquals(1, documents.size());
+        //{"parameter":"256"}
+        assertEquals(expected.getRoot(), documents.get(0).getOutputDocument().getRoot());
+    }
+
+
+    @Test
+    public void testConvertProjectionArrayNode() throws Exception {
+        rdbmsContext.setJsonNodeFactory(JsonNodeFactory.instance);
+        assertNotNull(rdbmsContext.getJsonNodeFactory());
+        assertNotNull(rdbmsContext.getCrudOperationContext());
+
+        final Integer value1 = new Integer(512);
+        final Integer value2 = new Integer(2);
+        final Class<?> objectClass = Integer.class;
+        DynVar dynVar = new DynVar(rdbmsContext);
+        String path = "parameter";
+        Column column = new Column(0, path, path, "java.lang.Boolean", Types.INTEGER);
+        dynVar.put(value1, objectClass, column);
+        dynVar.put(value2, objectClass, column);
+        RDBMSProcessor.convertProjection(rdbmsContext,null, dynVar);
+
+        JsonDoc jd = new JsonDoc(new ObjectNode(rdbmsContext.getJsonNodeFactory()));
+        ArrayNode arrayNode = new ArrayNode(rdbmsContext.getJsonNodeFactory());
+        arrayNode.add(value1.toString());
+        arrayNode.add(value2.toString());
+        jd.modify(new Path(path), arrayNode, true);
+        DocCtx expected =  new DocCtx(jd);
+
+        List<DocCtx> documents = rdbmsContext.getCrudOperationContext().getDocuments();
+        assertEquals(1, documents.size());
+        //{"parameter":["512","2"]}
+        assertEquals(expected.getRoot(), documents.get(0).getOutputDocument().getRoot());
     }
 }

@@ -20,7 +20,7 @@ package com.redhat.lightblue.metadata.rdbms.converter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
 
@@ -132,6 +132,13 @@ public class NamedParameterStatement {
         int[] indexes = getVariableIndexes(name);
         for (int index : indexes) {
             statement.setInt(index, value);
+        }
+    }
+
+    public void setBigDecimal(String name, BigDecimal value) throws SQLException {
+        int[] indexes = getIndexes(name);
+        for (int index : indexes) {
+            statement.setBigDecimal(index, value);
         }
     }
 
