@@ -33,6 +33,7 @@ import java.util.*;
  */
 public class NamedParameterStatement {
     private static final Logger LOGGER = LoggerFactory.getLogger(NamedParameterStatement.class);
+    public static final char EMPTY = ' ';
 
     private final PreparedStatement statement;
     private Map<String, int[]> variablesMap;
@@ -44,25 +45,53 @@ public class NamedParameterStatement {
     }
 
     private int findColon(int start, StringBuffer query) {
-        boolean inQuotes = false;
+        char quotationStart = EMPTY;
+        boolean inSingleQuotes = false;
+        boolean inDoubleQuotes = false;
         for (int i = start; i < query.length(); i++) {
             char c = query.charAt(i);
-            /*
+
             //for escaped  (checking if it necessary)
-            char before = ' ';
+            char before = EMPTY;
             if(i != 0){
                 before = query.charAt(i-1);
             }
-            if ((c == '"' || c == '\'') && before != '\\') {
-            */
-
             // quote or double quote should be ignored
-            if (c == '"' || c == '\'') {
-                inQuotes = !inQuotes;
+            if ((c == '"' || c == '\'') && before != '\\') {
+                if(c=='\''){
+                    if(inSingleQuotes){
+                        inSingleQuotes = false;
+                        if(quotationStart == '\''){
+                            quotationStart = EMPTY;
+                            inDoubleQuotes = false;//
+                        }
+                    }else{
+                        inSingleQuotes = true;
+                        if(quotationStart == EMPTY){
+                            quotationStart = c;
+                        }
+                    }
+
+                } else if(c == '"'){
+                    if(inDoubleQuotes){
+                        inDoubleQuotes = false;
+                        if(quotationStart == '"'){
+                            quotationStart = EMPTY;
+                            inSingleQuotes = false;
+                        }
+                    }else{
+                        inDoubleQuotes = true;
+                        if(quotationStart == EMPTY){
+                            quotationStart = c;
+                        }
+                    }
+                }
+
             }
-            if (inQuotes) {
+            if ((quotationStart == '\'' && inSingleQuotes) || (quotationStart == '"' && inDoubleQuotes)) {
                 continue;
             }
+
             // get parameter
             if (c == ':' && (query.charAt(i + 1) != '=')) {
                 return i;
