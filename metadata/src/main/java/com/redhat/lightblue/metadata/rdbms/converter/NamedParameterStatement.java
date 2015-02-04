@@ -93,7 +93,7 @@ public class NamedParameterStatement {
             }
 
             // get parameter
-            if (c == ':' && (query.charAt(i + 1) != '=')) {
+            if (c == ':' && query.length() > i+1 && (query.charAt(i + 1) != '=') && (query.charAt(i + 1) != ' ')) {
                 return i;
             }
         }

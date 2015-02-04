@@ -86,6 +86,21 @@ public class NamedParameterStatementRegressionTests {
             assertFalse(nps.processedQuery.contains(":parameter"));
         }
 
+        //malformed SQL
+        {
+            connection = new MyConnection();
+            connection.myPreparedStatement = new MyPreparedStatement();
+            nps = new SQLConverter(connection,"select:");
+            assertEquals("select:", nps.processedQuery);
+            assertFalse(nps.processedQuery.contains(":parameter"));
+        }
+        {
+            connection = new MyConnection();
+            connection.myPreparedStatement = new MyPreparedStatement();
+            nps = new SQLConverter(connection,"select : "); // '=' and ' ' are ignored, so it will not convert to '?'
+            assertEquals("select : ", nps.processedQuery);
+            assertFalse(nps.processedQuery.contains(":parameter"));
+        }
 
     }
 
