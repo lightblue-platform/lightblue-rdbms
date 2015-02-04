@@ -83,7 +83,7 @@ public class RDBMSProcessor {
 
         if(rdbmsContext.getQueryExpression() != null) {
             // Dynamically create the first SQL statements to generate the input for the next defined expressions
-            List<SelectStmt> inputStmt = Translator.ORACLE.translate(rdbmsContext);
+            List<SelectStmt> inputStmt = Translator.getImpl(rdbmsContext.getRdbms().getDialect()).translate(rdbmsContext);
 
             rdbmsContext.setInitialInput(true);
             new ExecuteSQLCommand(rdbmsContext, inputStmt).execute();

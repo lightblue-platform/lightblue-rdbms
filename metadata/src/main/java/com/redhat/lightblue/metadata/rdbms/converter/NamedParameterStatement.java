@@ -47,12 +47,23 @@ public class NamedParameterStatement {
         boolean inQuotes = false;
         for (int i = start; i < query.length(); i++) {
             char c = query.charAt(i);
+            /*
+            //for escaped  (checking if it necessary)
+            char before = ' ';
+            if(i != 0){
+                before = query.charAt(i-1);
+            }
+            if ((c == '"' || c == '\'') && before != '\\') {
+            */
+
+            // quote or double quote should be ignored
             if (c == '"' || c == '\'') {
                 inQuotes = !inQuotes;
             }
             if (inQuotes) {
                 continue;
             }
+            // get parameter
             if (c == ':' && (query.charAt(i + 1) != '=')) {
                 return i;
             }
@@ -68,7 +79,7 @@ public class NamedParameterStatement {
         return i;
     }
 
-    private String prepare(String query) {
+    protected String prepare(String query) {
         StringBuffer sql = new StringBuffer(query);
         HashMap<String, List<Integer>> variables = new HashMap<>();
         int idx = findColon(0, sql);
@@ -136,7 +147,7 @@ public class NamedParameterStatement {
     }
 
     public void setBigDecimal(String name, BigDecimal value) throws SQLException {
-        int[] indexes = getIndexes(name);
+        int[] indexes = getVariableIndexes(name);
         for (int index : indexes) {
             statement.setBigDecimal(index, value);
         }
