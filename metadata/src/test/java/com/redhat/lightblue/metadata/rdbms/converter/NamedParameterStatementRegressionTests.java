@@ -119,6 +119,16 @@ public class NamedParameterStatementRegressionTests {
             assertFalse(nps.processedQuery.contains(":parameter"));
             assertFalse(nps.processedQuery.contains("?"));
         }
+        {
+            connection = new MyConnection();
+            connection.myPreparedStatement = new MyPreparedStatement();
+            nps = new SQLConverter(connection,"select * from table where column like ' 123 \\\"123\\\"1 :xyz 23 '");
+            assertEquals("select * from table where column like ' 123 \\\"123\\\"1 :xyz 23 '", nps.processedQuery);
+            assertFalse(nps.processedQuery.contains(":parameter"));
+            assertFalse(nps.processedQuery.contains("?"));
+        }
+
+
     }
 
     static class SQLConverter extends NamedParameterStatement{
