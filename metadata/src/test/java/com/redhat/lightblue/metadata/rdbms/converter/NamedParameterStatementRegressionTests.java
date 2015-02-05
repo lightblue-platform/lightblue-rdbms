@@ -108,24 +108,21 @@ public class NamedParameterStatementRegressionTests {
             connection.myPreparedStatement = new MyPreparedStatement();
             nps = new SQLConverter(connection,"select * from table where column like 'abc:%def%' escape ':'");
             assertEquals("select * from table where column like 'abc:%def%' escape ':'", nps.processedQuery);
-            assertFalse(nps.processedQuery.contains(":parameter"));
-            assertFalse(nps.processedQuery.contains("?"));
+            assertFalse(nps.processedQuery.contains("?")); //it should not find a field
         }
         {
             connection = new MyConnection();
             connection.myPreparedStatement = new MyPreparedStatement();
             nps = new SQLConverter(connection,"select * from table where column like ' 123 \"123\"123 '");
             assertEquals("select * from table where column like ' 123 \"123\"123 '", nps.processedQuery);
-            assertFalse(nps.processedQuery.contains(":parameter"));
-            assertFalse(nps.processedQuery.contains("?"));
+            assertFalse(nps.processedQuery.contains("?")); //it should not find a field
         }
         {
             connection = new MyConnection();
             connection.myPreparedStatement = new MyPreparedStatement();
             nps = new SQLConverter(connection,"select * from table where column like ' 123 \\\"123\\\"1 :xyz 23 '");
             assertEquals("select * from table where column like ' 123 \\\"123\\\"1 :xyz 23 '", nps.processedQuery);
-            assertFalse(nps.processedQuery.contains(":parameter"));
-            assertFalse(nps.processedQuery.contains("?"));
+            assertFalse(nps.processedQuery.contains("?")); //it should not find a field
         }
 
 
