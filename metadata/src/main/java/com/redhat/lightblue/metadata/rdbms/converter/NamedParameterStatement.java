@@ -149,6 +149,7 @@ public class NamedParameterStatement {
     private int[] getVariableIndexes(String name) {
         int[] indexes = variablesMap.get(name);
         if (indexes == null) {
+            LOGGER.debug("getVariableIndexes didn't find the variable:{} in :{}", name, variablesMap.keySet());
             throw new IllegalStateException("Parameter not found: " + name);
         }
         return indexes;
