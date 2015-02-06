@@ -40,9 +40,12 @@ import com.redhat.lightblue.metadata.rdbms.model.SQLMapping;
 import com.redhat.lightblue.metadata.rdbms.model.Statement;
 import com.redhat.lightblue.metadata.rdbms.model.Then;
 import com.redhat.lightblue.util.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RDBMSPropertyParserImpl.class);
     public static final String NAME = "rdbms";
 
     @Override
@@ -280,7 +283,7 @@ public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
 
     private Then parseThenOrElse(MetadataParser<T> p, T t, String name, Then then) {
         try {
-            String loopOperator = p.getStringProperty(t, name); // getStringProperty  doesnt throw execption when field doesnt exist (but if it doesnt and it isnt the right type it throws and execption)
+            String loopOperator = p.getStringProperty(t, name); // getStringProperty  doesnt throw exception when field doesnt exist (but if it doesnt and it isnt the right type it throws and execption)
             if (loopOperator != null) {
                 then.setLoopOperator(loopOperator);
             } else {
@@ -292,7 +295,9 @@ public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
             List<T> expressionsT = p.getObjectList(t, name);
             List<Expression> expressions = parseExpressions(p, expressionsT);
             then.setExpressions(expressions);
-        } catch (Throwable te) {
+        } catch (Exception te) {
+            LOGGER.error("Expression returned an exception",te);
+
             return null;
         }
 

@@ -107,7 +107,6 @@ public class DynVar {
             ObjectNode root = jsonNodeFactory.objectNode();
             ObjectNode objectNode = jsonNodeFactory.objectNode();
 
-            JsonNode jsonNode = map == null? jsonNodeFactory.nullNode() : jsonNodeFactory.objectNode();
             if(map != null) {
                 for(Map.Entry<String, List<Var>> a : map.entrySet()){
                     ArrayNode jsonNodes = jsonNodeFactory.arrayNode();
