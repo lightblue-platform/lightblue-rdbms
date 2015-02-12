@@ -31,4 +31,6 @@ bin/*
 util/nb-configuration.xml
 nb-configuration.xml
 metadata/nb-configuration.xml
+rhc-port-forward-status
+etc/rhc-port-forward-status
 docs/cicd/*.png
