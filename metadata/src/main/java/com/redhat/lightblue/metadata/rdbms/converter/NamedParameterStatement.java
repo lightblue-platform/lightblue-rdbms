@@ -34,6 +34,7 @@ import java.util.*;
 public class NamedParameterStatement {
     private static final Logger LOGGER = LoggerFactory.getLogger(NamedParameterStatement.class);
     public static final char EMPTY = ' ';
+    public static final int[] EMPTY_ARRAY = new int[]{};
 
     private final PreparedStatement statement;
     private Map<String, int[]> variablesMap;
@@ -150,7 +151,7 @@ public class NamedParameterStatement {
         int[] indexes = variablesMap.get(name);
         if (indexes == null) {
             LOGGER.debug("getVariableIndexes didn't find the variable:{} in :{}", name, variablesMap.keySet());
-            throw new IllegalStateException("Parameter not found: " + name);
+            indexes = EMPTY_ARRAY;
         }
         return indexes;
     }
