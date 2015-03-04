@@ -53,20 +53,6 @@ public class ExecuteSQLCommand<T> extends HystrixCommand<Void> {
         this.inputStmt = inputStmt;
     }
 
-    /**
-     * Unwrap hystrix exception
-     */
-    @Override
-    public Void execute() {
-        try {
-            return super.execute();
-        } catch (HystrixBadRequestException br) {
-            throw (RuntimeException) br.getCause();
-        } catch (RuntimeException x) {
-            throw x;
-        }
-    }
-
     @Override
     protected Void run() {
         try {
