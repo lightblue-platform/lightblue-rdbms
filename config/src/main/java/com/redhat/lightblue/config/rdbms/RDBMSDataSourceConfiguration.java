@@ -18,19 +18,22 @@
  */
 package com.redhat.lightblue.config.rdbms;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.redhat.lightblue.common.rdbms.RDBMSUtils;
 import com.redhat.lightblue.config.DataSourceConfiguration;
 import com.redhat.lightblue.metadata.rdbms.impl.RDBMSDataStoreParser;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Objects;
-import javax.sql.DataSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -77,7 +80,7 @@ public class RDBMSDataSourceConfiguration implements DataSourceConfiguration {
                     if (x != null) {
                         JNDI = x.asText();
                     } else {
-                        throw new IllegalStateException("No datasourceName was found: " + node.toString());
+                        throw new IllegalStateException("No JNDI was found: " + node.toString());
                     }
                     dataSourceJDNIMap.put(datasourceName, JNDI);
                 }

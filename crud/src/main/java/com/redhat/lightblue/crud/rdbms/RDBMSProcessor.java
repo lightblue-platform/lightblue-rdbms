@@ -21,6 +21,7 @@ package com.redhat.lightblue.crud.rdbms;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.redhat.lightblue.common.rdbms.RDBMSConstants;
 import com.redhat.lightblue.common.rdbms.RDBMSDataStore;
@@ -82,7 +83,7 @@ public class RDBMSProcessor {
 
         if(rdbmsContext.getQueryExpression() != null) {
             // Dynamically create the first SQL statements to generate the input for the next defined expressions
-            List<SelectStmt> inputStmt = Translator.ORACLE.translate(rdbmsContext);
+            List<SelectStmt> inputStmt = Translator.getImpl(rdbmsContext.getRdbms().getDialect()).translate(rdbmsContext);
 
             rdbmsContext.setInitialInput(true);
             new ExecuteSQLCommand(rdbmsContext, inputStmt).execute();
@@ -162,28 +163,53 @@ public class RDBMSProcessor {
     private static void convertInputToProjection(RDBMSContext rdbmsContext) {
         convertProjection(rdbmsContext,rdbmsContext.getIn(),rdbmsContext.getInVar());
     }
-    private static void convertProjection(RDBMSContext rdbmsContext, List<InOut> inout, DynVar dynVar) {
-        List<JsonDoc> l = new ArrayList<>();
 
-        for (InOut io : inout) {
-            String c = io.getColumn().toString();
-            List values = dynVar.getValues(c);
-            JsonDoc jd = null;
-            if(values.isEmpty()){
-                jd = new JsonDoc(NullNode.getInstance());
-            }else if(values.size() > 1 ){
-                jd = new JsonDoc(new TextNode(values.get(1).toString()));
-            }else {
-                ArrayNode doc = new ArrayNode(rdbmsContext.getJsonNodeFactory());
-                for (Object value : values) {
-                    doc.add(value.toString());
-                }
-                jd = new JsonDoc(doc);
-            }
-            l.add(jd);
+    public static void convertProjection(RDBMSContext rdbmsContext, List<InOut> inout, DynVar dynVar) {
+        List<JsonDoc> l = new ArrayList<>();
+        JsonDoc jd = new JsonDoc(new ObjectNode(rdbmsContext.getJsonNodeFactory()));
+        l.add(jd);
+
+        for (String key : dynVar.getKeys()) {
+            List values = dynVar.getValues(key);
+            convertRecursion(rdbmsContext, jd, key, values, null);
         }
 
         rdbmsContext.getCrudOperationContext().addDocuments(l);
+    }
+
+    private static void convertRecursion(RDBMSContext rdbmsContext, JsonDoc jd, String key, Object values, ArrayNode doc) {
+        Collection c = values instanceof Collection? ((Collection)values) : null;
+        if (values == null || (c!=null && c.isEmpty()) ) {
+            if(doc == null) {
+                jd.modify(new Path(key), NullNode.getInstance(), true);
+            } else {
+                doc.add(NullNode.getInstance());
+            }
+        } else if (c!=null && c.size() > 1 ) {
+            if (doc == null) {
+                doc = new ArrayNode(rdbmsContext.getJsonNodeFactory());
+            }
+            for (Object value : c) {
+                if(value instanceof Collection){
+                    Collection cValue = (Collection) value;
+                    ArrayNode newDoc = new ArrayNode(rdbmsContext.getJsonNodeFactory());
+                    for (Object o : cValue) {
+                        convertRecursion(rdbmsContext, jd, key, o, newDoc);
+                    }
+                    doc.add(newDoc);
+                } else {
+                    doc.add(value.toString());
+                }
+            }
+            jd.modify(new Path(key),doc,true);
+        }else {
+            if(doc == null) {
+                Object o = c.iterator().next();
+                jd.modify(new Path(key),new TextNode(o.toString()),true);
+            } else {
+                doc.add(new TextNode(values.toString()));
+            }
+        }
     }
 
     private static void recursiveExpressionCall(RDBMSContext rdbmsContext, Operation op, List<Expression> expressionList) {

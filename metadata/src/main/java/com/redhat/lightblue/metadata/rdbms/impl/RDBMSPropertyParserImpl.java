@@ -18,36 +18,47 @@
  */
 package com.redhat.lightblue.metadata.rdbms.impl;
 
-import com.redhat.lightblue.common.rdbms.RDBMSConstants;
-import com.redhat.lightblue.metadata.rdbms.model.ForEach;
-import com.redhat.lightblue.metadata.rdbms.model.InOut;
-import com.redhat.lightblue.metadata.rdbms.model.If;
-import com.redhat.lightblue.metadata.rdbms.model.Conditional;
-import com.redhat.lightblue.metadata.rdbms.model.Statement;
-import com.redhat.lightblue.metadata.rdbms.model.ElseIf;
-import com.redhat.lightblue.metadata.rdbms.model.Then;
-import com.redhat.lightblue.metadata.rdbms.model.For;
-import com.redhat.lightblue.metadata.rdbms.model.Bindings;
-import com.redhat.lightblue.metadata.rdbms.model.Else;
-import com.redhat.lightblue.metadata.rdbms.model.Expression;
-import com.redhat.lightblue.metadata.rdbms.model.Operation;
-import com.redhat.lightblue.metadata.rdbms.model.RDBMS;
-import com.redhat.lightblue.metadata.parser.MetadataParser;
-import com.redhat.lightblue.metadata.parser.PropertyParser;
-import com.redhat.lightblue.metadata.rdbms.enums.LightblueOperators;
-import com.redhat.lightblue.metadata.rdbms.model.SQLMapping;
-import com.redhat.lightblue.util.Path;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
+import com.redhat.lightblue.metadata.parser.MetadataParser;
+import com.redhat.lightblue.metadata.parser.PropertyParser;
+import com.redhat.lightblue.metadata.rdbms.enums.LightblueOperators;
+import com.redhat.lightblue.metadata.rdbms.model.Bindings;
+import com.redhat.lightblue.metadata.rdbms.model.Conditional;
+import com.redhat.lightblue.metadata.rdbms.model.Else;
+import com.redhat.lightblue.metadata.rdbms.model.ElseIf;
+import com.redhat.lightblue.metadata.rdbms.model.Expression;
+import com.redhat.lightblue.metadata.rdbms.model.For;
+import com.redhat.lightblue.metadata.rdbms.model.ForEach;
+import com.redhat.lightblue.metadata.rdbms.model.If;
+import com.redhat.lightblue.metadata.rdbms.model.InOut;
+import com.redhat.lightblue.metadata.rdbms.model.Operation;
+import com.redhat.lightblue.metadata.rdbms.model.RDBMS;
+import com.redhat.lightblue.metadata.rdbms.model.SQLMapping;
+import com.redhat.lightblue.metadata.rdbms.model.Statement;
+import com.redhat.lightblue.metadata.rdbms.model.Then;
+import com.redhat.lightblue.util.Path;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RDBMSPropertyParserImpl.class);
+    public static final String NAME = "rdbms";
+
     @Override
-    public Object parse(String name, MetadataParser<T> p, T node) {
-        if (!"rdbms".equals(name)) {
+    public RDBMS parse(String name, MetadataParser<T> p, T node) {
+        if (!NAME.equals(name)) {
             throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_WRONG_ROOT_NODE_NAME, "Node name informed:" + name);
         }
+
+        String dialect = p.getStringProperty(node, "dialect");
+        if (dialect == null || dialect.isEmpty()) {
+            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No field informed");
+        }
+
         T delete = p.getObjectProperty(node, LightblueOperators.DELETE);
         T fetch = p.getObjectProperty(node, LightblueOperators.FETCH);
         T insert = p.getObjectProperty(node, LightblueOperators.INSERT);
@@ -59,6 +70,7 @@ public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
         }
 
         RDBMS rdbms = new RDBMS();
+        rdbms.setDialect(dialect);
         rdbms.setDelete(parseOperation(p, delete, LightblueOperators.DELETE));
         rdbms.setFetch(parseOperation(p, fetch, LightblueOperators.FETCH));
         rdbms.setInsert(parseOperation(p, insert, LightblueOperators.INSERT));
@@ -68,12 +80,6 @@ public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
         SQLMapping s = new SQLMapping();
         s.parse(p, p.getObjectProperty(node, "SQLMapping"));
         rdbms.setSQLMapping(s);
-
-        String dialect = p.getStringProperty(node, "dialect");
-        if (dialect == null || dialect.isEmpty()) {
-            throw com.redhat.lightblue.util.Error.get(RDBMSConstants.ERR_FIELD_REQUIRED, "No field informed");
-        }
-        rdbms.setDialect(dialect);
 
         return rdbms;
     }
@@ -277,7 +283,7 @@ public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
 
     private Then parseThenOrElse(MetadataParser<T> p, T t, String name, Then then) {
         try {
-            String loopOperator = p.getStringProperty(t, name); // getStringProperty  doesnt throw execption when field doesnt exist (but if it doesnt and it isnt the right type it throws and execption)
+            String loopOperator = p.getStringProperty(t, name); // getStringProperty  doesnt throw exception when field doesnt exist (but if it doesnt and it isnt the right type it throws and execption)
             if (loopOperator != null) {
                 then.setLoopOperator(loopOperator);
             } else {
@@ -289,7 +295,9 @@ public class RDBMSPropertyParserImpl<T> extends PropertyParser<T> {
             List<T> expressionsT = p.getObjectList(t, name);
             List<Expression> expressions = parseExpressions(p, expressionsT);
             then.setExpressions(expressions);
-        } catch (Throwable te) {
+        } catch (Exception te) {
+            LOGGER.error("Expression returned an exception",te);
+
             return null;
         }
 

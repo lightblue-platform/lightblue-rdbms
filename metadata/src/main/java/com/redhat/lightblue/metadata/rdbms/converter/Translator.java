@@ -62,6 +62,13 @@ public abstract class Translator {
         NARY_TO_SQL.put(NaryLogicalOperator._or, "or");
     }
 
+    public static Translator getImpl(String type) {
+        if("oracle".equals(type)) {
+            return ORACLE;
+        }
+        throw new IllegalArgumentException("RDBMS required for metadata isn't supported. Type="+type);
+    }
+
     public String generateStatement(SelectStmt selectStmt) {
         StringBuilder queryStringBuilder = new StringBuilder();
         generatePre(selectStmt, queryStringBuilder);
@@ -236,6 +243,31 @@ public abstract class Translator {
         }
         return fieldTreeNode1;
     }
+    public static Set<Path> getRequiredFields(EntityMetadata md,
+                                              Projection p,
+                                              QueryExpression q,
+                                              Sort s) {
+        LOGGER.debug("getRequiredFields: p={}, q={}, s={}",p,q,s);
+        Set<Path> fields=new HashSet<>();
+        FieldCursor cursor=md.getFieldCursor();
+        while(cursor.next()) {
+            Path field=cursor.getCurrentPath();
+            FieldTreeNode node=cursor.getCurrentNode();
+            if( (node instanceof ObjectField) ||
+                    (node instanceof ArrayField &&
+                            ((ArrayField)node).getElement() instanceof ObjectArrayElement) ) {
+                // include its member fields
+            } else if( (p!=null && p.isFieldRequiredToEvaluateProjection(field)) ||
+                    (q!=null && q.isRequired(field)) ||
+                    (s!=null && s.isRequired(field)) ) {
+                LOGGER.debug("{}: required",field);
+                fields.add(field);
+            } else {
+                LOGGER.debug("{}: not required", field);
+            }
+        }
+        return fields;
+    }
 
     protected static String translatePath(Path p) {
         StringBuilder stringBuilder = new StringBuilder();
@@ -320,6 +352,8 @@ public abstract class Translator {
     //Possible subquery or it will need to run a query before this
     //{ _id: 1, results: [ 82, 85, 88 ] } { _id: 2, results: [ 75, 88, 89 ] } ->{ results: { elemMatch: { gte: 80, lt: 85 } } }->{ "_id" : 1, "results" : [ 82, 85, 88 ] }
     protected void recursiveTranslateArrayElemMatch(TranslationContext translationContext, ArrayMatchExpression arrayMatchExpression) {
+        /*
+         TODO Need to define what would happen in this scenario (not supported yet)
         FieldTreeNode arrayNode = resolve(translationContext.fieldTreeNode, arrayMatchExpression.getArray());
         if (arrayNode instanceof ArrayField) {
             ArrayElement arrayElement = ((ArrayField) arrayNode).getElement();
@@ -328,11 +362,11 @@ public abstract class Translator {
                 translationContext.fieldTreeNode = arrayElement;
                 recursiveTranslateQuery(translationContext, arrayMatchExpression.getElemMatch());
                 String path = translatePath(arrayMatchExpression.getArray());
-                // TODO Need to define what would happen in this scenario (not supported yet)
                 translationContext.fieldTreeNode = tmpFieldTreeNode;
                 throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, arrayMatchExpression.toString());
             }
         }
+        */
         throw com.redhat.lightblue.util.Error.get(RDBMSConstants.INV_FIELD, arrayMatchExpression.toString());
     }
 
@@ -387,6 +421,7 @@ public abstract class Translator {
         for (Table table : join.getTables()) {
             if(translationContext.nameOfTables.add(table.getName())){
                 LOGGER.warn("Table mentioned more than once in the same query. Possible N+1 problem");
+                LOGGER.debug("nameOfTables: {} table: {}", translationContext.nameOfTables, table.getName());
             }
             if(table.getAlias() != null && !table.getAlias().isEmpty() ){
                 fromTables.add(table.getName() + " AS " + table.getAlias() );
@@ -456,15 +491,11 @@ public abstract class Translator {
     }
 
     protected void recursiveTranslateValueComparisonExpression(TranslationContext translationContext, ValueComparisonExpression valueComparisonExpression){
-        StringBuilder str = new StringBuilder();
         // We have to deal with array references here
         Value rvalue = valueComparisonExpression.getRvalue();
         Path lField = valueComparisonExpression.getField();
         int ln = lField.nAnys();
         if (ln > 0) {
-            // TODO Need to define what would happen in this scenario
-            throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, valueComparisonExpression.toString());
-        } else if (ln > 0) {
             // TODO Need to define what would happen in this scenario
             throw Error.get(RDBMSConstants.ERR_NO_OPERATOR, valueComparisonExpression.toString());
         } else {

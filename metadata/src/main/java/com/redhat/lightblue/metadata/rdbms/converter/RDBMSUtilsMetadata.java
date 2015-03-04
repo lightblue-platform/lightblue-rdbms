@@ -18,15 +18,24 @@
  */
 package com.redhat.lightblue.metadata.rdbms.converter;
 
-import com.redhat.lightblue.common.rdbms.RDBMSConstants;
-import com.redhat.lightblue.util.Error;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import com.redhat.lightblue.common.rdbms.RDBMSConstants;
+import com.redhat.lightblue.common.rdbms.RDBMSUtils;
+import com.redhat.lightblue.util.Error;
 
 public class RDBMSUtilsMetadata {
     private static final Logger LOGGER = LoggerFactory.getLogger(RDBMSUtilsMetadata.class);
@@ -36,7 +45,7 @@ public class RDBMSUtilsMetadata {
             return rDBMSContext.getDataSource();
         }
         if(rDBMSContext.getDataSourceName() != null && !rDBMSContext.getDataSourceName().isEmpty()) {
-            DataSource dataSource = com.redhat.lightblue.common.rdbms.RDBMSUtils.getDataSource(rDBMSContext.getDataSourceName());
+            DataSource dataSource = RDBMSUtils.getDataSource(rDBMSContext.getDataSourceName());
             rDBMSContext.setDataSource(dataSource);
             return dataSource;
         }
@@ -129,7 +138,15 @@ public class RDBMSUtilsMetadata {
         return ps;
     }
     enum Classes {
-        Boolean,Short,Integer,Long,Double,String,Date,Time ;
+        Boolean,Short,Integer,Long,Double,String,Date,Time,Bytes,BigDecimal;
+
+        public static Classes getEnum(String clazz){
+            if("byte[]".equals(clazz)) {
+                return Bytes;
+            } else {
+                return valueOf(clazz);
+            }
+        }
 
     }
     public static void processDynVar(RDBMSContext context,NamedParameterStatement nps,DynVar dynVar) {
@@ -143,7 +160,8 @@ public class RDBMSUtilsMetadata {
                         continue;
                     }
                     Class clazz = dynVar.getFirstClassFromKey(key);
-                    Classes z = Classes.valueOf(clazz.getSimpleName());
+                    String simpleName = clazz.getSimpleName();
+                    Classes z = Classes.getEnum(simpleName);
                     switch (z) {
                         case Boolean:
                             nps.setBoolean(key, (Boolean) o);
@@ -155,7 +173,7 @@ public class RDBMSUtilsMetadata {
                             nps.setInt(key, (Integer) o);
                             break;
                         case Long:
-                            nps.setLong(key, (Long)o);
+                            nps.setLong(key, (Long) o);
                             break;
                         case Double:
                             nps.setDouble(key, (Double) o);
@@ -164,16 +182,24 @@ public class RDBMSUtilsMetadata {
                             nps.setString(key, o.toString());
                             break;
                         case Date:
-                            nps.setTimestamp(key, new Timestamp(((Date)o).getTime()));
+                            if(o instanceof java.util.Date) {
+                                java.util.Date o1 = (java.util.Date) o;
+                                nps.setTimestamp(key, new Timestamp(o1.getTime()));
+                            } else {
+                                throw new IllegalStateException("State not implemented! clazz:"+clazz+" z:"+z+" clazz.getSimpleName():"+clazz.getSimpleName());
+                            }
                             break;
                         case Time:
                             nps.setTime(key, (Time) o);
                             break;
+                        case BigDecimal:
+                            nps.setBigDecimal(key, (BigDecimal) o);
+                            break;
+                        case Bytes:
+                            nps.setBytes(key, (byte[]) o);
+                            break;
                         default:
                             throw new IllegalStateException("State not implemented! clazz:"+clazz+" z:"+z+" clazz.getSimpleName():"+clazz.getSimpleName());
-                    }
-                    if("byte[]".equals(clazz.getSimpleName())){
-                        nps.setBytes(key, (byte[]) o);
                     }
                 }
             }

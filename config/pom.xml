@@ -21,34 +21,33 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.redhat.lightblue.rdbms</groupId>
-        <artifactId>rdbms-pom</artifactId>
+        <artifactId>lightblue-rdbms-pom</artifactId>
          <version>0.9.1-SNAPSHOT</version>
     </parent>
     <groupId>com.redhat.lightblue.rdbms</groupId>
-    <artifactId>rdbms-config</artifactId>
+    <artifactId>lightblue-rdbms-config</artifactId>
     <packaging>jar</packaging>
      <version>0.9.1-SNAPSHOT</version>
     <name>lightblue-rdbms: ${project.groupId}|${project.artifactId}</name>
     <dependencies>
         <dependency>
             <groupId>com.redhat.lightblue.rdbms</groupId>
-            <artifactId>rdbms-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.redhat.lightblue.config</groupId>
-            <artifactId>core-config</artifactId>
-            <version>${lightblue-core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.redhat.lightblue.rdbms</groupId>
-            <artifactId>rdbms-metadata</artifactId>
+            <artifactId>lightblue-rdbms-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.redhat.lightblue.rdbms</groupId>
-            <artifactId>rdbms-crud</artifactId>
+            <artifactId>lightblue-rdbms-metadata</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.redhat.lightblue.rdbms</groupId>
+            <artifactId>lightblue-rdbms-crud</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.redhat.lightblue</groupId>
+            <artifactId>lightblue-core-config</artifactId>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>

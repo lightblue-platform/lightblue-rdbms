@@ -1,8 +1,50 @@
 package com.redhat.lightblue.metadata.rdbms.converter;
 
-import com.fasterxml.jackson.core.JsonFactory;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.InputStream;
+import java.io.Reader;
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.net.URL;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.CallableStatement;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.Date;
+import java.sql.NClob;
+import java.sql.ParameterMetaData;
+import java.sql.PreparedStatement;
+import java.sql.Ref;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.RowId;
+import java.sql.SQLClientInfoException;
+import java.sql.SQLException;
+import java.sql.SQLWarning;
+import java.sql.SQLXML;
+import java.sql.Savepoint;
+import java.sql.Statement;
+import java.sql.Struct;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.Executor;
+
+import javax.sql.DataSource;
+
+import org.hsqldb.jdbc.JDBCDataSource;
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.redhat.lightblue.common.rdbms.RDBMSDataSourceResolver;
 import com.redhat.lightblue.common.rdbms.RDBMSDataStore;
 import com.redhat.lightblue.crud.CRUDOperationContext;
@@ -10,30 +52,19 @@ import com.redhat.lightblue.crud.Factory;
 import com.redhat.lightblue.crud.Operation;
 import com.redhat.lightblue.eval.FieldAccessRoleEvaluator;
 import com.redhat.lightblue.metadata.EntityMetadata;
-import com.redhat.lightblue.metadata.rdbms.model.*;
-import com.redhat.lightblue.query.*;
+import com.redhat.lightblue.metadata.rdbms.model.Expression;
+import com.redhat.lightblue.metadata.rdbms.model.InOut;
+import com.redhat.lightblue.metadata.rdbms.model.RDBMS;
+import com.redhat.lightblue.query.BinaryComparisonOperator;
+import com.redhat.lightblue.query.FieldAndRValue;
+import com.redhat.lightblue.query.FieldComparisonExpression;
+import com.redhat.lightblue.query.FieldProjection;
+import com.redhat.lightblue.query.SetExpression;
+import com.redhat.lightblue.query.SortKey;
+import com.redhat.lightblue.query.UpdateOperator;
 import com.redhat.lightblue.util.JsonDoc;
 import com.redhat.lightblue.util.JsonUtils;
 import com.redhat.lightblue.util.Path;
-import org.hsqldb.jdbc.JDBCConnection;
-import org.hsqldb.jdbc.JDBCDataSource;
-import org.hsqldb.jdbc.JDBCPreparedStatement;
-import org.hsqldb.persist.HsqlProperties;
-import org.junit.Test;
-
-import javax.sql.DataSource;
-import java.io.InputStream;
-import java.io.Reader;
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.net.URL;
-import java.sql.*;
-import java.sql.Date;
-import java.sql.Statement;
-import java.util.*;
-import java.util.concurrent.Executor;
-
-import static org.junit.Assert.*;
 
 public class RDBMSContextTest {
 
@@ -106,11 +137,11 @@ public class RDBMSContextTest {
 
     private static class MyCRUDOperationContext extends CRUDOperationContext {
         public MyCRUDOperationContext() {
-            this(Operation.SAVE, "entityName", new Factory(), new HashSet<String>(),new ArrayList<JsonDoc>());
+            this(Operation.SAVE, "entityName", new Factory() ,new ArrayList<JsonDoc>());
         }
 
-        public MyCRUDOperationContext(Operation op, String entityName, Factory f, Set<String> callerRoles, List<JsonDoc> docs) {
-            super(op, entityName, f, callerRoles, docs);
+        public MyCRUDOperationContext(Operation op, String entityName, Factory f, List<JsonDoc> docs) {
+            super(op, entityName, f, docs);
         }
 
         @Override
