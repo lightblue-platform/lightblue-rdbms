@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/lightblue-platform/lightblue-rdbms.svg?branch=master)](https://travis-ci.org/lightblue-platform/lightblue-rdbms) [![Coverage Status](https://coveralls.io/repos/lightblue-platform/lightblue-rdbms/badge.png)](https://coveralls.io/r/lightblue-platform/lightblue-rdbms) [![Stories in Ready](https://badge.waffle.io/lightblue-platform/lightblue.svg?label=ready&title=Ready)](http://waffle.io/lightblue-platform/lightblue)
+[![Coverage Status](https://coveralls.io/repos/lightblue-platform/lightblue-rdbms/badge.png)](https://coveralls.io/r/lightblue-platform/lightblue-rdbms) [![Stories in Ready](https://badge.waffle.io/lightblue-platform/lightblue.svg?label=ready&title=Ready)](http://waffle.io/lightblue-platform/lightblue)
 
 # Books!
 
